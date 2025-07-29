@@ -1,0 +1,95 @@
+#include "prototablemodel.h"
+
+void ProtoTableModel::loadDataFromJson()
+{
+    QFile file(":/prototype_table/regime_a.json");
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning("Couldn't open regime_a.json");
+        return;
+    }
+
+    QByteArray data = file.readAll();
+    QJsonDocument doc(QJsonDocument::fromJson(data));
+    QJsonObject json = doc.object();
+    m_regimes = json["regimes"].toArray();
+
+    beginResetModel();
+    m_columnNames.clear();
+    m_data.clear();
+
+    m_columnNames << "Режим" << "Условие" << "Повтор" << "Макс. время";
+
+    for (const QJsonValue &value : m_regimes) {
+        QJsonObject obj = value.toObject();
+        QStringList row;
+        row.append(obj["name"].toString());
+        row.append(obj["condition"].toObject()["type"].toString());
+        row.append(QString::number(obj["repeat"].toObject()["count"].toInt()));
+        row.append(QString::number(obj["condition"].toObject()["time"].toInt()));
+        m_data.append(row);
+    }
+
+    endResetModel();
+}
+
+ProtoTableModel::ProtoTableModel(QObject *parent)
+    : QAbstractTableModel(parent)
+{
+    loadDataFromJson();
+}
+
+int ProtoTableModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid())
+        return 0;
+
+    return m_data.count();
+}
+
+int ProtoTableModel::columnCount(const QModelIndex &parent) const
+{
+    if (parent.isValid())
+        return 0;
+
+    return m_columnNames.count();
+}
+
+QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid())
+        return QVariant();
+
+    if (role == Qt::DisplayRole) {
+        return m_data.at(index.row()).at(index.column());
+    }
+
+    if (role == ConditionRole) {
+        QJsonObject regime = m_regimes[index.row()].toObject();
+        return regime["condition"].toObject();
+    }
+    return QVariant();
+}
+
+QVariant ProtoTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
+        return m_columnNames.at(section);
+    }
+    return QVariant();
+}
+
+
+
+QHash<int, QByteArray> ProtoTableModel::roleNames() const
+{
+    return {
+        { Qt::DisplayRole, "display" },
+        { Qt::EditRole, "edit" },
+        { ConditionRole, "condition" }
+    };
+}
+
+Qt::ItemFlags ProtoTableModel::flags(const QModelIndex &index) const
+{
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+}
