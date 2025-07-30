@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QStandardPaths>
 
 class ProtoTableModel : public QAbstractTableModel
 {
@@ -34,6 +35,9 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+    Q_INVOKABLE void updateCondition(int row, const QVariant &newCondition);
+    Q_INVOKABLE void saveDataToJson();
 
 private:
     void loadDataFromJson();

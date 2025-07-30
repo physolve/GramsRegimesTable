@@ -36,8 +36,11 @@ ApplicationWindow {
             delegate: DelegateChooser {
                 DelegateChoice {
                     column: 1
-                    delegate: ConditionDelegateA {
+                    delegate: ConditionCell {
                         condition: model.condition
+                        onConditionChanged: (newCondition) => {
+                            tableView.model.updateCondition(model.row, newCondition)
+                        }
                     }
                 }
                 DelegateChoice {
@@ -48,6 +51,14 @@ ApplicationWindow {
             }
             ScrollBar.horizontal: ScrollBar {}
             ScrollBar.vertical: ScrollBar {}
+        }
+
+        Button {
+            text: "Save Changes"
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.margins: 10
+            onClicked: tableView.model.saveDataToJson()
         }
 
         SelectionRectangle {

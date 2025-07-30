@@ -1,5 +1,19 @@
 # README.md
 
+## TODO for 2025-07-30
+
+- Rename `ConditionDelegateA.qml` to `ConditionCell.qml`.
+- Add interactivity to `ConditionCell.qml`.
+    - Changing any of the values in the delegate should update the `ProtoTableModel`.
+- Save all changes from the `ProtoTableModel` back to `regime_a.json`.
+
+## План работ на 2025-07-30
+
+- Переименовать `ConditionDelegateA.qml` в `ConditionCell.qml`.
+- Добавить интерактивность в `ConditionCell.qml`.
+    - Изменение любого из значений в делегате должно обновлять `ProtoTableModel`.
+- Сохранять все изменения из `ProtoTableModel` обратно в `regime_a.json`.
+
 ## Daily Report - 2025-07-29
 
 - Created documentation for `regime_a.json` in a new `regime_a.md` file and removed comments from the JSON file.

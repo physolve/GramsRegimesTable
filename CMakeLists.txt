@@ -32,7 +32,7 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
     QML_FILES
         MyTablePrototype.qml
         ProtoTable.qml
-        ConditionDelegateA.qml
+        ConditionCell.qml
     SOURCES
         prototablemodel.cpp
         prototablemodel.h

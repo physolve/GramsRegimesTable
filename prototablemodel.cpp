@@ -2,7 +2,12 @@
 
 void ProtoTableModel::loadDataFromJson()
 {
-    QFile file(":/prototype_table/regime_a.json");
+    QString filePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/regime_a.json";
+    QFile file(filePath);
+    if (!file.exists()) {
+        file.setFileName(":/prototype_table/regime_a.json");
+    }
+
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning("Couldn't open regime_a.json");
         return;
@@ -30,6 +35,21 @@ void ProtoTableModel::loadDataFromJson()
     }
 
     endResetModel();
+}
+
+void ProtoTableModel::saveDataToJson()
+{
+    QString filePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/regime_a.json";
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open file for writing");
+        return;
+    }
+
+    QJsonObject root;
+    root["regimes"] = m_regimes;
+    QJsonDocument doc(root);
+    file.write(doc.toJson());
 }
 
 ProtoTableModel::ProtoTableModel(QObject *parent)
@@ -92,4 +112,20 @@ QHash<int, QByteArray> ProtoTableModel::roleNames() const
 Qt::ItemFlags ProtoTableModel::flags(const QModelIndex &index) const
 {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+}
+
+void ProtoTableModel::updateCondition(int row, const QVariant &newCondition)
+{
+    if (row < 0 || row >= m_regimes.count()) {
+        return;
+    }
+
+    QJsonObject newConditionObj = newCondition.toJsonObject();
+    m_regimes[row].toObject()["condition"] = newConditionObj;
+
+    // Update the display data as well
+    m_data[row][1] = newConditionObj["type"].toString();
+    m_data[row][3] = QString::number(newConditionObj["time"].toInt());
+
+    emit dataChanged(index(row, 0), index(row, columnCount() - 1));
 }
