@@ -1,19 +1,22 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include "prototablemodel.h"
+#include "regime.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
-    QString applicationName = "prototype_table";
+
+    qRegisterMetaType<Condition>();
+    qmlRegisterType<ProtoTableModel>("com.grams.prototable", 1, 0, "ProtoTableModel");
+
     QQmlApplicationEngine engine;
-    engine.addImportPath(":/");
-    const QUrl url(QString("qrc:/%1/qml/Main.qml").arg(applicationName));
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed,
-        &app, [](const QUrl &objUrl) {
-            Q_UNUSED(objUrl);
-            QCoreApplication::exit(-1);
-        },
-        Qt::QueuedConnection);
+    const QUrl url(u"qrc:/prototype_table/qml/Main.qml"_qs);
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+        &app, [url](QObject *obj, const QUrl &objUrl) {
+            if (!obj && url == objUrl)
+                QCoreApplication::exit(-1);
+        }, Qt::QueuedConnection);
     engine.load(url);
 
     return app.exec();

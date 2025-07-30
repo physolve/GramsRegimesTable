@@ -30,12 +30,11 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
     URI com.grams.prototable
     VERSION 1.0
     QML_FILES
-        MyTablePrototype.qml
-        ProtoTable.qml
         ConditionCell.qml
     SOURCES
         prototablemodel.cpp
         prototablemodel.h
+        regime.cpp
         regime.h
 )
 

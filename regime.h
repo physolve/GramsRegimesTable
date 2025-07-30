@@ -2,62 +2,45 @@
 
 #include <QString>
 #include <QJsonObject>
-#include <QJsonArray>
+#include <QVariant>
 
 struct Condition {
+    Q_GADGET
+    Q_PROPERTY(QString type MEMBER type)
+    Q_PROPERTY(double temp MEMBER temp)
+    Q_PROPERTY(int time MEMBER time)
+
+public:
     QString type;
     double temp = 0.0;
-    double time = 0.0;
+    int time = 0;
 
-    Condition() = default;
-    Condition(const QJsonObject &json) {
-        type = json["type"].toString();
-        temp = json["temp"].toDouble();
-        time = json["time"].toDouble();
-    }
+    bool operator==(const Condition &other) const = default;
 
-    QJsonObject toJson() const {
-        QJsonObject json;
-        json["type"] = type;
-        json["temp"] = temp;
-        json["time"] = time;
-        return json;
-    }
+    QJsonObject toJson() const;
+    static Condition fromJson(const QJsonObject &json);
 };
 
-struct Repeat {
-    int count = 0;
-
-    Repeat() = default;
-    Repeat(const QJsonObject &json) {
-        count = json["count"].toInt();
-    }
-
-    QJsonObject toJson() const {
-        QJsonObject json;
-        json["count"] = count;
-        return json;
-    }
-};
+Q_DECLARE_METATYPE(Condition)
 
 class Regime {
+    Q_GADGET
+    Q_PROPERTY(QString name MEMBER m_name)
+    Q_PROPERTY(Condition condition MEMBER m_condition)
+    Q_PROPERTY(int repeatCount MEMBER m_repeatCount)
+    Q_PROPERTY(int maxTime MEMBER m_maxTime)
+
 public:
-    QString name;
-    Condition condition;
-    Repeat repeat;
+    QString m_name;
+    Condition m_condition;
+    int m_repeatCount = 0;
+    int m_maxTime = 0;
+    int m_cycleId = 0;
 
-    Regime() = default;
-    Regime(const QJsonObject &json) {
-        name = json["name"].toString();
-        condition = Condition(json["condition"].toObject());
-        repeat = Repeat(json["repeat"].toObject());
-    }
+    bool operator==(const Regime &other) const = default;
 
-    QJsonObject toJson() const {
-        QJsonObject json;
-        json["name"] = name;
-        json["condition"] = condition.toJson();
-        json["repeat"] = repeat.toJson();
-        return json;
-    }
+    QJsonObject toJson() const;
+    static Regime fromJson(const QJsonObject &json);
 };
+
+Q_DECLARE_METATYPE(Regime)

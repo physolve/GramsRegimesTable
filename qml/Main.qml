@@ -35,12 +35,32 @@ ApplicationWindow {
             }
             delegate: DelegateChooser {
                 DelegateChoice {
+                    column: 0
+                    delegate: Button {
+                        text: model.regime.name
+                        onClicked: {
+                            // Handle button click here
+                        }
+                    }
+                }
+                DelegateChoice {
                     column: 1
                     delegate: ConditionCell {
-                        condition: model.condition
-                        onConditionEdit: (newCondition) => {
-                            tableView.model.updateCondition(model.row, newCondition)
+                    }
+                }
+                DelegateChoice {
+                    column: 2
+                    delegate: SpinBox {
+                        value: model.repeat
+                        onValueModified: {
+                            model.repeat = value
                         }
+                    }
+                }
+                DelegateChoice {
+                    column: 3
+                    delegate: TextField {
+                        text: model.max_time
                     }
                 }
                 DelegateChoice {

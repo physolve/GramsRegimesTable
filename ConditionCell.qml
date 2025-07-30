@@ -1,69 +1,58 @@
 import QtQuick
 import QtQuick.Controls
 
-/*Example of condition delegate*/
-Row{
-    required property bool selected
+Row {
+    id: container
+    required property int row
+    required property int column
     required property bool current
-    required property var condition
-
-    signal conditionEdit(var newCondition)
-
+    required property bool editing
+    required property bool selected
+    required property var model
     ComboBox {
         id: typeComboBox
         model: ["temp", "time", "both"]
-        width: parent.width/2
+        width: parent.width / 2
         font.pointSize: 9
-        Component.onCompleted:{
-            currentIndex = condition.type == "temp" ? 0 : (condition.type == "time" ? 1 : 2)
-        }
-        onCurrentIndexChanged: {
-            var newCondition = {
-                "type": model[currentIndex],
-                "temp": tempTextField.text,
-                "time": timeTextField.text
-            };
-            conditionEdit(newCondition);
+        currentIndex: container.model.condition.type === "temp" ? 0 : (container.model.condition.type === "time" ? 1 : 2)
+        onCurrentTextChanged: {
+            let newCond = container.model.condition
+            newCond.type = typeComboBox.currentText
+            container.model.condition = newCond
         }
     }
-    TextField{
+
+    TextField {
         id: tempTextField
         font.pointSize: 9
-        validator: DoubleValidator { bottom: 0; top: 1000} //; decimals: 3
+        validator: DoubleValidator { bottom: 0; top: 1000; decimals: 3 }
         selectByMouse: true
-        width: parent.width/4
+        width: parent.width / 4
         horizontalAlignment: TextInput.AlignHCenter
         placeholderText: "°C"
-        text: condition.temp
-        enabled: typeComboBox.currentIndex !== 1 // Not "time"
-
+        text: container.model.condition.temp
+        enabled: typeComboBox.currentText === "temp" || typeComboBox.currentText === "both"
         onEditingFinished: {
-            var newCondition = {
-                "type": typeComboBox.model[typeComboBox.currentIndex],
-                "temp": text,
-                "time": timeTextField.text
-            };
-            conditionEdit(newCondition);
+            let newCond = container.model.condition
+            newCond.temp = tempTextField.text
+            container.model.condition = newCond
         }
     }
-    TextField{
+
+    TextField {
         id: timeTextField
         font.pointSize: 9
-        validator: DoubleValidator { bottom: 0; top: 1000} //; decimals: 3
+        validator: IntValidator { bottom: 0; top: 1000 }
         selectByMouse: true
-        width: parent.width/4
+        width: parent.width / 4
         horizontalAlignment: TextInput.AlignHCenter
         placeholderText: "мин"
-        text: condition.time
-        enabled: typeComboBox.currentIndex !== 0 // Not "temp"
-
+        text: container.model.condition.time
+        enabled: typeComboBox.currentText === "time" || typeComboBox.currentText === "both"
         onEditingFinished: {
-            var newCondition = {
-                "type": typeComboBox.model[typeComboBox.currentIndex],
-                "temp": tempTextField.text,
-                "time": text
-            };
-            conditionEdit(newCondition);
+            let newCond = container.model.condition
+            newCond.time = timeTextField.text
+            container.model.condition = newCond
         }
     }
 }
