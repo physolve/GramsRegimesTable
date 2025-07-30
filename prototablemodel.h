@@ -9,6 +9,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QStandardPaths>
+#include "regime.h"
 
 class ProtoTableModel : public QAbstractTableModel
 {
@@ -17,6 +18,7 @@ class ProtoTableModel : public QAbstractTableModel
 
 public:
     explicit ProtoTableModel(QObject *parent = nullptr);
+    ~ProtoTableModel();
 
     // Basic functionality:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -41,8 +43,9 @@ public:
 
 private:
     void loadDataFromJson();
+    void clearRegimes();
     QStringList m_columnNames;
     QList<QStringList> m_data;
-    QJsonArray m_regimes;
+    QList<Regime*> m_regimes;
 };
 

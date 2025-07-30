@@ -38,7 +38,7 @@ ApplicationWindow {
                     column: 1
                     delegate: ConditionCell {
                         condition: model.condition
-                        onConditionChanged: (newCondition) => {
+                        onConditionEdit: (newCondition) => {
                             tableView.model.updateCondition(model.row, newCondition)
                         }
                     }

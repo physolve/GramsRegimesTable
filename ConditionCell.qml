@@ -7,22 +7,23 @@ Row{
     required property bool current
     required property var condition
 
-    signal conditionChanged(var newCondition)
+    signal conditionEdit(var newCondition)
 
     ComboBox {
         id: typeComboBox
         model: ["temp", "time", "both"]
         width: parent.width/2
-        currentIndex: condition.type == "temp" ? 0 : (condition.type == "time" ? 1 : 2)
         font.pointSize: 9
-
+        Component.onCompleted:{
+            currentIndex = condition.type == "temp" ? 0 : (condition.type == "time" ? 1 : 2)
+        }
         onCurrentIndexChanged: {
             var newCondition = {
                 "type": model[currentIndex],
                 "temp": tempTextField.text,
                 "time": timeTextField.text
             };
-            conditionChanged(newCondition);
+            conditionEdit(newCondition);
         }
     }
     TextField{
@@ -42,7 +43,7 @@ Row{
                 "temp": text,
                 "time": timeTextField.text
             };
-            conditionChanged(newCondition);
+            conditionEdit(newCondition);
         }
     }
     TextField{
@@ -62,7 +63,7 @@ Row{
                 "temp": tempTextField.text,
                 "time": text
             };
-            conditionChanged(newCondition);
+            conditionEdit(newCondition);
         }
     }
 }

@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/prototype_table">
         <file>qml/Main.qml</file>
-        <file>regime_a.json</file>
     </qresource>
 </RCC>

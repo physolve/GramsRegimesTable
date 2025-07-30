@@ -36,6 +36,7 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
     SOURCES
         prototablemodel.cpp
         prototablemodel.h
+        regime.h
 )
 
 target_link_libraries(${EXECUTABLE_NAME}
