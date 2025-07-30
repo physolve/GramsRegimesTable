@@ -18,7 +18,6 @@ class ProtoTableModel : public QAbstractTableModel
 
 public:
     explicit ProtoTableModel(QObject *parent = nullptr);
-    ~ProtoTableModel();
 
     // Basic functionality:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -28,8 +27,6 @@ public:
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-
-    
 
     enum Roles {
         ConditionRole = Qt::UserRole + 1
@@ -43,9 +40,8 @@ public:
 
 private:
     void loadDataFromJson();
-    void clearRegimes();
     QStringList m_columnNames;
     QList<QStringList> m_data;
-    QList<Regime*> m_regimes;
+    QList<Regime> m_regimes;
 };
 
