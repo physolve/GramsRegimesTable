@@ -25,6 +25,14 @@ QJsonObject Regime::toJson() const {
     repeatObj["count"] = m_repeatCount;
     json["repeat"] = repeatObj;
     json["max_time"] = m_maxTime;
+    if (m_cycleId != -1) {
+        QJsonObject cycleObj;
+        cycleObj["id"] = m_cycleId;
+        cycleObj["cycleRepeat"] = m_cycleRepeat;
+        json["cycle"] = cycleObj;
+    } else {
+        json["cycle"] = QJsonValue();
+    }
     return json;
 }
 
@@ -34,5 +42,10 @@ Regime Regime::fromJson(const QJsonObject &json) {
     r.m_condition = Condition::fromJson(json["condition"].toObject());
     r.m_repeatCount = json["repeat"].toObject()["count"].toInt();
     r.m_maxTime = json["max_time"].toInt();
+    if (!json["cycle"].isNull()) {
+        QJsonObject cycleObj = json["cycle"].toObject();
+        r.m_cycleId = cycleObj["id"].toInt();
+        r.m_cycleRepeat = cycleObj["cycleRepeat"].toInt();
+    }
     return r;
 }

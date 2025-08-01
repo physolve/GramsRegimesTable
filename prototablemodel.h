@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QDir>
 #include <QDebug>
+#include <QMap>
 #include "regime.h"
 
 class ProtoTableModel : public QAbstractTableModel
@@ -20,7 +21,10 @@ public:
         RegimeRole = Qt::UserRole + 1,
         ConditionRole,
         RepeatRole,
-        MaxTimeRole
+        MaxTimeRole,
+        SpanRole,
+        CycleStatusRole,
+        CycleRepeatRole
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -35,6 +39,12 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
     Q_INVOKABLE void saveDataToJson();
+    Q_INVOKABLE void groupRows(QVariantList rows);
+    Q_INVOKABLE void ungroupRows(QVariantList rows);
+
+signals:
+    void regimeButtonClicked(QVariant regime);
+    Q_INVOKABLE void updateRow(int row);
 
 private:
     void loadDataFromJson();

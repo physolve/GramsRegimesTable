@@ -1,3 +1,41 @@
+## TODO for 2025-08-02
+
+1.  **Sync `selectLayout` with `repeatLayout`:**
+    *   Implement `DelegateChooser` for `selectLayout` to visually represent cycles in the same way as `repeatLayout`.
+    *   Verify that row selection, grouping, and ungrouping logic works correctly with the new delegate structure.
+2.  **Enable Row Reordering:**
+    *   Implement functionality to allow changing the position of selected regimes and cycles within the table.
+3.  **Persist Changes to JSON:**
+    *   Ensure that all modifications, including grouping, ungrouping, and reordering, are correctly saved back to the `regime_a.json` file.
+4.  **Expose Full QML API:**
+    *   Update the QML module API to expose all new functionalities, making them accessible to other QML components.
+
+## План работ на 2025-08-02
+
+1.  **Синхронизация `selectLayout` с `repeatLayout`:**
+    *   Реализовать `DelegateChooser` для `selectLayout`, чтобы визуально представлять циклы так же, как и в `repeatLayout`.
+    *   Проверить, что логика выбора, группировки и разгруппировки строк работает корректно с новой структурой делегатов.
+2.  **Включение изменения порядка строк:**
+    *   Реализовать функциональность, позволяющую изменять положение выбранных режимов и циклов в таблице.
+3.  **Сохранение изменений в JSON:**
+    *   Убедиться, что все изменения, включая группировку, разгруппировку и изменение порядка, корректно сохраняются обратно в файл `regime_a.json`.
+4.  **Предоставление полного API QML:**
+    *   Обновить API модуля QML, чтобы предоставить все новые функциональные возможности, сделав их доступными для других компонентов QML.
+
+## Daily Report - 2025-08-01
+
+- Implemented a selection mechanism in `qml/Main.qml` by adding a new column of rectangles that can be clicked to select rows.
+- Added a context menu that appears on right-clicking the new selection column, providing "Group" and "Ungroup" options.
+- Connected the context menu actions to the `groupRows` and `ungroupRows` functions in `ProtoTableModel`.
+- Ensured that the selection is cleared after a group or ungroup action is performed.
+
+## Ежедневный отчет - 2025-08-01
+
+- Реализован механизм выбора в `qml/Main.qml` путем добавления нового столбца прямоугольников, которые можно нажимать для выбора строк.
+- Добавлено контекстное меню, которое появляется при щелчке правой кнопкой мыши по новому столбцу выбора, предоставляя опции "Group" и "Ungroup".
+- Подключены действия контекстного меню к функциям `groupRows` и `ungroupRows` в `ProtoTableModel`.
+- Обеспечено, что выбор очищается после выполнения действия группировки или разгруппировки.
+
 ## TODO for 2025-07-31
 
 1.  **Display `max_time` with time string format:**
@@ -23,7 +61,7 @@
     *   В зависимости от идентификатора цикла, объединять строки режимов в столбце `repeat`, делая значение `repeat` общим для этих строк в пределах одного цикла.
 
 3.  **Предоставление API модуля QML:**
-    *   Предоставить API QML для возврата объекта класса `Regime` по строке из `ProtoTableModel`.
+    *   Предоставить API QML для возврата объекта класса `Regime` по номеру строки (id) из `ProtoTableModel`.
     *   Предоставить сигнал для делегата Button в `tableView` (столбец 0), чтобы внешние компоненты QML могли реагировать на нажатия кнопок, передавая соответствующие данные `Regime`.
 
 ## Daily Report - 2025-07-30

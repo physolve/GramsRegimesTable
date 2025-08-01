@@ -1,98 +1,76 @@
-{
-    "regimes":[
-        {
-            "name": "Вакуум",
-            "condition": {
-                "type": "temp",
-                "temp": 100,
-                "time": 0
-            },
-            "repeat": {
-                "count": 1
-            },
-            "cycle":{
-                "active": false,
-                "id": 0
-            },
-            "note": "",
-            "state":{
-                "active": false,
-                "error": false,
-                "message": ""
-            }
+ [
+    {
+        "name": "Вакуум",
+        "condition": {
+            "temp": 100,
+            "time": 0,
+            "type": "temp"
         },
-        {
-            "name": "Режим а",
-            "condition": {
-                "type": "time",
-                "temp": 0,
-                "time": 120
-            },
-            "repeat": {
-                "count": 1
-            },
-            "cycle":{
-                "active": true,
-                "id": 1
-            },
-            "note": "",
-            "state":{
-                "active": false,
-                "error": false,
-                "message": ""
-            }
-        },
-        {
-            "name": "Режим б",
-            "condition": {
-                "type": "time",
-                "temp": 0,
-                "time": 120
-            },
-            "repeat": {
-                "count": 1
-            },
-            "cycle":{
-                "active": true,
-                "id": 1
-            },
-            "note": "",
-            "state":{
-                "active": false,
-                "error": false,
-                "message": ""
-            }
-        },
-        {
-            "name": "Вакуум",
-            "condition": {
-                "type": "time",
-                "temp": 0,
-                "time": 100
-            },
-            "repeat": {
-                "count": 1
-            },
-            "cycle":{
-                "active": false,
-                "id": 0
-            },
-            "note": "",
-            "state":{
-                "active": false,
-                "error": false,
-                "message": ""
-            }
+        "max_time": 0,
+        "note": "",
+        "repeat": 1,
+        "cycle": null,
+        "state": {
+            "active": false,
+            "error": false,
+            "message": ""
         }
-    ],
-    "cycles":[
-        {
-            "id": 0,
-            "repeat": 1
+    },
+    {
+        "name": "Режим а",
+        "condition": {
+            "temp": 0,
+            "time": 120,
+            "type": "time"
         },
-        {
+        "max_time": 0,
+        "note": "",
+        "repeat": 1,
+        "cycle": {
             "id": 1,
-            "repeat": 2
+            "cycleRepeat": 2
+        },
+        "state": {
+            "active": false,
+            "error": false,
+            "message": ""
         }
-    ]
-}
+    },
+    {
+        "condition": {
+            "temp": 0,
+            "time": 120,
+            "type": "time"
+        },
+        "max_time": 0,
+        "name": "Режим б",
+        "note": "",
+        "repeat": 1,
+        "cycle": {
+            "id": 1,
+            "cycleRepeat": 2
+        },
+        "state": {
+            "active": false,
+            "error": false,
+            "message": ""
+        }
+    },
+    {
+        "name": "Вакуум",
+        "condition": {
+            "temp": 0,
+            "time": 100,
+            "type": "time"
+        },
+        "max_time": 120,
+        "note": "",
+        "repeat": 1,
+        "cycle": null,
+        "state": {
+            "active": false,
+            "error": false,
+            "message": ""
+        }
+    }
+]

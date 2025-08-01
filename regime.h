@@ -35,7 +35,8 @@ public:
     Condition m_condition;
     int m_repeatCount = 0;
     int m_maxTime = 0;
-    int m_cycleId = 0;
+    int m_cycleId = -1;
+    int m_cycleRepeat = 1;
 
     bool operator==(const Regime &other) const = default;
 
