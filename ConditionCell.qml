@@ -14,8 +14,17 @@ Row {
         model: ["temp", "time", "both"]
         width: parent.width / 2
         font.pointSize: 9
-        currentIndex: container.model.condition.type === "temp" ? 0 : (container.model.condition.type === "time" ? 1 : 2)
-        onCurrentTextChanged: {
+        // function fromIndex(index) {
+        //     switch (index) {
+        //         case 0: return "temp"
+        //         case 1: return "time"
+        //         case 2: return "both"
+        //     }
+        // }
+        property string curentType:  container.model.condition.type
+        currentIndex: curentType === "temp" ? 0 : (curentType === "time" ? 1 : 2)
+        onCurrentTextChanged:{
+            curentType = currentText
             let newCond = container.model.condition
             newCond.type = typeComboBox.currentText
             container.model.condition = newCond

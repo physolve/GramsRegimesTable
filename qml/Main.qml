@@ -11,6 +11,27 @@ ApplicationWindow {
     visible: true
     title: qsTr("ProtoTable App")
 
+    MenuBar {
+        id: menuBar
+        x: 50
+        y: 400
+        Menu {
+            title: "Добавить"
+            MenuItem {
+                text: qsTr("Вакуум")
+                onTriggered: protoTableModel.addRow("Вакуум")
+            }
+            MenuItem {
+                text: qsTr("Режим в")
+                onTriggered: protoTableModel.addRow("Режим в")
+            }
+            MenuItem {
+                text: qsTr("Режим г")
+                onTriggered: protoTableModel.addRow("Режим г")
+            }
+        }
+    }
+
     ProtoTableModel {
         id: protoTableModel
     }
@@ -129,38 +150,75 @@ ApplicationWindow {
             rowSpacing: 1
             property var selectedRows: []
 
+            function toggleSelection(index) {
+                var newSelection = selectedRows.slice();
+                var idx = newSelection.indexOf(index);
+                if (idx === -1) {
+                    newSelection.push(index);
+                } else {
+                    newSelection.splice(idx, 1);
+                }
+                selectedRows = newSelection;
+            }
+
             Repeater {
                 model: protoTableModel
-                delegate: Rectangle {
-                    width: 60
-                    height: 40
-                    border.color: "black"
-                    border.width: 1
-                    color: selectLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
+                delegate: DelegateChooser {
+                    role: "cycle_status"
+                    DelegateChoice {
+                        roleValue: 1 // First in cycle
+                        delegate: Rectangle {
+                            width: 60
+                            height: 40 * model.span
+                            Layout.rowSpan: model.span
+                            border.color: "black"
+                            border.width: 1
+                            color: selectLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
 
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onClicked: (mouse) => {
-                            if (mouse.button === Qt.LeftButton) {
-                                var newSelection = selectLayout.selectedRows.slice();
-                                var idx = newSelection.indexOf(index);
-                                if (idx === -1) {
-                                    newSelection.push(index);
-                                } else {
-                                    newSelection.splice(idx, 1);
+                            MouseArea {
+                                anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.LeftButton) {
+                                        selectLayout.toggleSelection(index)
+                                    } else if (mouse.button === Qt.RightButton) {
+                                        contextMenu.popup()
+                                    }
                                 }
-                                selectLayout.selectedRows = newSelection;
-                            } else if (mouse.button === Qt.RightButton) {
-                                contextMenu.popup()
                             }
                         }
+                    }
+                    DelegateChoice {
+                        roleValue: 0 // Not in cycle
+                        delegate: Rectangle {
+                            width: 60
+                            height: 40
+                            border.color: "black"
+                            border.width: 1
+                            color: selectLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
+
+                            MouseArea {
+                                anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.LeftButton) {
+                                        selectLayout.toggleSelection(index)
+                                    } else if (mouse.button === Qt.RightButton) {
+                                        contextMenu.popup()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    DelegateChoice {
+                        roleValue: 2 // Subsequent in cycle
+                        delegate: Item {}
                     }
                 }
             }
         }
     }
-
+    
     Menu {
         id: contextMenu
         MenuItem {
@@ -175,6 +233,18 @@ ApplicationWindow {
             onTriggered: {
                 protoTableModel.ungroupRows(selectLayout.selectedRows.sort())
                 selectLayout.selectedRows = []
+            }
+        }
+        MenuItem {
+            text: qsTr("Move Up")
+            onTriggered: {
+                selectLayout.selectedRows = protoTableModel.moveRows(selectLayout.selectedRows, true)
+            }
+        }
+        MenuItem {
+            text: qsTr("Move Down")
+            onTriggered: {
+                selectLayout.selectedRows = protoTableModel.moveRows(selectLayout.selectedRows, false)
             }
         }
     }

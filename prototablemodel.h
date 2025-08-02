@@ -41,12 +41,18 @@ public:
     Q_INVOKABLE void saveDataToJson();
     Q_INVOKABLE void groupRows(QVariantList rows);
     Q_INVOKABLE void ungroupRows(QVariantList rows);
+    
+    Q_INVOKABLE QVariantList moveRows(QVariantList rows, bool up);
+    Q_INVOKABLE void addRow(const QString &regimeName);
+public slots:
+    Q_INVOKABLE int getRowCount() { return m_regimes.count(); }
 
 signals:
     void regimeButtonClicked(QVariant regime);
     Q_INVOKABLE void updateRow(int row);
 
 private:
+    void updateCycleIds();
     void loadDataFromJson();
 
     QList<Regime> m_regimes;

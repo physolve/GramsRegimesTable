@@ -1,8 +1,112 @@
+### TODO for Monday, August 4, 2025
+
+1.  **Finalize Cycle & Selection Logic:**
+    *   **Bug Fix:** Investigate and fix the remaining issues with the `span` calculation for cycle delegates to ensure they always render correctly.
+    *   **Refine `selectLayout` Behavior:**
+        *   Implement logic to automatically deselect all rows after any context menu action (`Group`, `Ungroup`, `Move`, etc.) is triggered.
+        *   Implement deselection when the user clicks outside of the selectable items.
+    *   **Implement Context-Aware Menu:**
+        *   The `Group` `MenuItem` should only be enabled/visible when two or more individual (non-cycled) regimes are selected.
+        *   The `Ungroup` `MenuItem` should only be enabled/visible when a row belonging to a cycle is selected.
+        *   The `Move Up` `MenuItem` should be disabled for the topmost row/cycle.
+        *   The `Move Down` `MenuItem` should be disabled for the bottommost row/cycle.
+    *   **Add Delete Functionality:** Implement a "Delete" option in the context menu to remove selected rows or cycles.
+
+2.  **Implement Status API:**
+    *   Define the requirements for a "status" property for each regime/cycle (e.g., active, paused, skipped).
+    *   Create a C++ API in `ProtoTableModel` to get and set this status.
+    *   Expose the new status API and property to QML so it can be visualized and controlled from the UI.
+
+3.  **Implement Unit Tests:**
+    *   Set up a testing framework for the C++ model (if one doesn't exist).
+    *   Write unit tests for the core regime-changing logic, including:
+        *   `moveRows()`
+        *   `groupRows()`
+        *   `ungroupRows()`
+        *   `addRow()`
+        *   `deleteRow()` (once implemented)
+
+---
+
+### План работ на понедельник, 4 августа 2025 г.
+
+1.  **Завершение логики циклов и выбора:**
+    *   **Исправление ошибки:** Расследовать и устранить оставшиеся проблемы с расчетом `span` для делегатов циклов, чтобы они всегда отображались корректно.
+    *   **Улучшение поведения `selectLayout`:**
+        *   Реализовать логику автоматического снятия выделения со всех строк после выполнения любого действия из контекстного меню (`Group`, `Ungroup`, `Move` и т.д.).
+        *   Реализовать снятие выделения при клике за пределами выбираемых элементов.
+    *   **Реализация контекстно-зависимого меню:**
+        *   Пункт меню `Group` должен быть активен/виден только тогда, когда выбрано два или более отдельных (не в цикле) режима.
+        *   Пункт меню `Ungroup` должен быть активен/виден только тогда, когда выбрана строка, принадлежащая циклу.
+        *   Пункт меню `Move Up` должен быть неактивен для самого верхнего элемента/цикла.
+        *   Пункт меню `Move Down` должен быть неактивен для самого нижнего элемента/цикла.
+    *   **Добавление функционала удаления:** Реализовать опцию "Delete" в контекстном меню для удаления выбранных строк или циклов.
+
+2.  **Реализация API статусов:**
+    *   Определить требования к свойству "статус" для каждого режима/цикла (например, активен, на паузе, пропущен).
+    *   Создать C++ API в `ProtoTableModel` для получения и установки этого статуса.
+    *   Предоставить новый API статусов и свойство в QML, чтобы его можно было визуализировать и контролировать из интерфейса.
+
+3.  **Реализация юнит-тестов:**
+    *   Настроить фреймворк для тестирования C++ модели (если он отсутствует).
+    *   Написать юнит-тесты для основной логики изменения режимов, включая:
+        *   `moveRows()`
+        *   `groupRows()`
+        *   `ungroupRows()`
+        *   `addRow()`
+        *   `deleteRow()` (после реализации)
+
+## Daily Report for 2025-08-02
+
+Today's work focused on improving the core functionality of the prototype table application, specifically around row manipulation, cycle management, and adding new rows.
+
+### Features Added:
+
+*   **Add New Rows:** A "File" menu was added with an "Add" submenu, allowing users to add new regimes ("Вакуум", "Режим в", "Режим г") to the table.
+
+### Refactoring and Bug Fixes:
+
+*   **Row Movement:** The `moveRows` function was completely overhauled to correctly handle moving single rows and entire cycles up and down the table. The new logic ensures that cycles are treated as atomic units and that moving them doesn't break their internal consistency.
+*   **Cycle Management:**
+    *   The `groupRows` and `ungroupRows` functions were significantly improved to handle cycle IDs more intelligently. When grouping, the new logic merges cycles or creates new ones with appropriate IDs. When ungrouping, it correctly dissolves cycles and resets the `cycleId` for all affected rows.
+    *   A new `updateCycleIds` function was introduced to re-index all cycle IDs sequentially after any operation that could change their order (grouping, ungrouping, moving). This ensures that cycle IDs always reflect their visual position in the table.
+*   **Span and Cycle Status Calculation:** The logic for calculating the `SpanRole` and `CycleStatusRole` in the `data()` function was corrected to be more efficient and accurate, resolving issues with incorrect delegate spans.
+
+### Known Issues:
+
+*   There are still some lingering issues with the cycle delegate's span and the group/ungroup logic. These will need to be addressed in a future session.
+
+Overall, today's changes have made the application more robust and feature-rich, though some further refinement of the cycle management logic is still required.
+
+## Ежедневный отчет за 2025-08-02
+
+Сегодняшняя работа была сосредоточена на улучшении основной функциональности приложения-прототипа таблицы, в частности, на манипулировании строками, управлении циклами и добавлении новых строк.
+
+### Добавленные функции:
+
+*   **Добавление новых строк:** Было добавлено меню "Файл" с подменю "Добавить", позволяющее пользователям добавлять новые режимы ("Вакуум", "Режим в", "Режим г") в таблицу.
+
+### Рефакторинг и исправление ошибок:
+
+*   **Перемещение строк:** Функция `moveRows` была полностью переработана для корректной обработки перемещения отдельных строк и целых циклов вверх и вниз по таблице. Новая логика гарантирует, что циклы рассматриваются как атомарные единицы, и их перемещение не нарушает их внутреннюю целостность.
+*   **Управление циклами:**
+    *   Функции `groupRows` и `ungroupRows` были значительно улучшены для более интеллектуальной обработки идентификаторов циклов. При группировке новая логика объединяет циклы или создает новые с соответствующими идентификаторами. При разгруппировке она корректно расформировывает циклы и сбрасывает `cycleId` для всех затронутых строк.
+    *   Была введена новая функция `updateCycleIds` для последовательной переиндексации всех идентификаторов циклов после любой операции, которая может изменить их порядок (группировка, разгруппировка, перемещение). Это гарантирует, что идентификаторы циклов всегда отражают их визуальное положение в таблице.
+*   **Расчет Span и статуса цикла:** Логика расчета `SpanRole` и `CycleStatusRole` в функции `data()` была исправлена, чтобы быть более эффективной и точной, что решило проблемы с некорректными размерами делегатов.
+
+### Известные проблемы:
+
+*   Все еще остаются некоторые нерешенные проблемы с размером делегата цикла и логикой группировки/разгруппировки. Их нужно будет решить в следующей сессии.
+
+В целом, сегодняшние изменения сделали приложение более надежным и многофункциональным, хотя все еще требуется некоторая доработка логики управления циклами.
+
 ## TODO for 2025-08-02
 
 1.  **Sync `selectLayout` with `repeatLayout`:**
     *   Implement `DelegateChooser` for `selectLayout` to visually represent cycles in the same way as `repeatLayout`.
-    *   Verify that row selection, grouping, and ungrouping logic works correctly with the new delegate structure.
+    *   Verify that row selection, grouping, and ungrouping logic works correctly with the new delegate structure. So
+    *   if selected row delegate is on cycle then you can only ungroup or delete, if selected delegate without cycle then 
+    *   you can only delete, if two row delegates were selected then you can group or delete them. 
 2.  **Enable Row Reordering:**
     *   Implement functionality to allow changing the position of selected regimes and cycles within the table.
 3.  **Persist Changes to JSON:**
