@@ -1,5 +1,20 @@
 #include "prototablemodel.h"
 
+void ProtoTableModel::updateCycleIds()
+{
+    QMap<int, int> cycleIdMap;
+    int nextCycleId = 0;
+
+    for (int i = 0; i < m_regimes.count(); ++i) {
+        if (m_regimes[i].m_cycleId != -1) {
+            if (!cycleIdMap.contains(m_regimes[i].m_cycleId)) {
+                cycleIdMap[m_regimes[i].m_cycleId] = nextCycleId++;
+            }
+            m_regimes[i].m_cycleId = cycleIdMap[m_regimes[i].m_cycleId];
+        }
+    }
+}
+
 void ProtoTableModel::loadDataFromJson()
 {
     QDir dir("profile");
@@ -111,30 +126,35 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
             return 1;
         }
 
-        // Check if this is the first row in the cycle
-        if (index.row() > 0 && m_regimes.at(index.row() - 1).m_cycleId == regime.m_cycleId) {
-            return 1; // Not the first row, so span is 0
-        }
-
-        int span = 1;
-        for (int i = index.row() + 1; i < m_regimes.count(); ++i) {
+        int span = 0;
+        bool first = true;
+        for (int i = 0; i < m_regimes.count(); ++i) {
             if (m_regimes.at(i).m_cycleId == regime.m_cycleId) {
+                if (i < index.row()) {
+                    first = false;
+                    break;
+                }
                 span++;
-            } else {
-                break;
             }
         }
-        return span;
+
+        return first ? span : 0;
     }
 
     if (role == CycleStatusRole) {
         if (regime.m_cycleId == -1) {
             return 0; // Not in a cycle
         }
-        if (index.row() > 0 && m_regimes.at(index.row() - 1).m_cycleId == regime.m_cycleId) {
-            return 2; // Subsequent in cycle
+
+        bool first = true;
+        for (int i = 0; i < index.row(); ++i) {
+            if (m_regimes.at(i).m_cycleId == regime.m_cycleId) {
+                first = false;
+                break;
+            }
         }
-        return 1; // First in cycle
+
+        return first ? 1 : 2; // 1 for first, 2 for subsequent
     }
 
     if (role == CycleRepeatRole) {
@@ -206,6 +226,35 @@ QVariant ProtoTableModel::headerData(int section, Qt::Orientation orientation, i
     return QVariant();
 }
 
+bool ProtoTableModel::moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild)
+{
+    if (sourceParent.isValid() || destinationParent.isValid() || sourceRow < 0 || count <= 0 || destinationChild < 0 || sourceRow + count > m_regimes.count() || destinationChild > m_regimes.count())
+        return false;
+
+    if (!beginMoveRows(sourceParent, sourceRow, sourceRow + count - 1, destinationParent, destinationChild))
+        return false;
+
+    QList<Regime> movedItems;
+    for (int i = 0; i < count; ++i) {
+        movedItems.append(m_regimes.takeAt(sourceRow));
+    }
+
+    int insertPos = destinationChild;
+    if (sourceRow < insertPos) {
+        insertPos -= count;
+    }
+
+    for (int i = 0; i < count; ++i) {
+        m_regimes.insert(insertPos + i, movedItems.at(i));
+    }
+
+    endMoveRows();
+    updateCycleIds();
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
+    saveDataToJson();
+    return true;
+}
+
 QHash<int, QByteArray> ProtoTableModel::roleNames() const
 {
     return {
@@ -225,64 +274,28 @@ Qt::ItemFlags ProtoTableModel::flags(const QModelIndex &index) const
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
 }
 
-void ProtoTableModel::updateCycleIds()
-{
-    int currentCycleId = 1;
-    int lastSeenCycleId = -1;
-    for (int i = 0; i < m_regimes.count(); ++i) {
-        if (m_regimes[i].m_cycleId != -1) {
-            if (m_regimes[i].m_cycleId != lastSeenCycleId) {
-                lastSeenCycleId = m_regimes[i].m_cycleId;
-                int newId = currentCycleId++;
-                // Update all regimes with the old ID to the new one
-                for (int j = i; j < m_regimes.count(); ++j) {
-                    if (m_regimes[j].m_cycleId == lastSeenCycleId) {
-                        m_regimes[j].m_cycleId = newId;
-                    }
-                }
-                lastSeenCycleId = newId;
-            }
-        }
-    }
-}
-
 void ProtoTableModel::groupRows(QVariantList rows)
 {
     if (rows.count() < 2) return;
 
-    QList<int> rowIndices;
-    for (const QVariant &row : rows) {
-        rowIndices.append(row.toInt());
-    }
-
-    int targetCycleId = -1;
-    // Check if any of the selected rows are already in a cycle.
-    for (int rowIndex : rowIndices) {
-        if (m_regimes[rowIndex].m_cycleId != -1) {
-            targetCycleId = m_regimes[rowIndex].m_cycleId;
-            break;
+    int newCycleId = 0;
+    for (const auto &regime : m_regimes) {
+        if (regime.m_cycleId > newCycleId) {
+            newCycleId = regime.m_cycleId;
         }
     }
+    newCycleId++;
 
-    // If no existing cycle was found, find the max cycleId and increment it.
-    if (targetCycleId == -1) {
-        targetCycleId = 0;
-        for (const auto &regime : m_regimes) {
-            if (regime.m_cycleId > targetCycleId) {
-                targetCycleId = regime.m_cycleId;
-            }
+    for (const QVariant &rowVariant : rows) {
+        int row = rowVariant.toInt();
+        if (row >= 0 && row < m_regimes.count()) {
+            m_regimes[row].m_cycleId = newCycleId;
         }
-        targetCycleId++;
-    }
-
-    // Assign the targetCycleId to all selected rows.
-    for (int rowIndex : rowIndices) {
-        m_regimes[rowIndex].m_cycleId = targetCycleId;
     }
 
     updateCycleIds();
     emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
-    saveDataToJson();
+    emit selectionShouldBeCleared();
 }
 
 void ProtoTableModel::ungroupRows(QVariantList rows)
@@ -290,11 +303,11 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
     if (rows.isEmpty()) return;
 
     QSet<int> cyclesToUngroup;
-    for (const QVariant &row : rows) {
-        int rowIndex = row.toInt();
-        if (rowIndex >= 0 && rowIndex < m_regimes.count()) {
-            if (m_regimes[rowIndex].m_cycleId != -1) {
-                cyclesToUngroup.insert(m_regimes[rowIndex].m_cycleId);
+    for (const QVariant &rowVariant : rows) {
+        int row = rowVariant.toInt();
+        if (row >= 0 && row < m_regimes.count()) {
+            if (m_regimes[row].m_cycleId != -1) {
+                cyclesToUngroup.insert(m_regimes[row].m_cycleId);
             }
         }
     }
@@ -309,99 +322,39 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
 
     updateCycleIds();
     emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
-    saveDataToJson();
+    emit selectionShouldBeCleared();
 }
 
-QVariantList ProtoTableModel::moveRows(QVariantList rows, bool up)
+QVariantList ProtoTableModel::moveSelection(QVariantList rows, bool up)
 {
     if (rows.isEmpty())
         return QVariantList();
 
-    QList<int> selectedIndices;
-    for (const QVariant &v : rows) {
-        selectedIndices.append(v.toInt());
-    }
-    std::sort(selectedIndices.begin(), selectedIndices.end());
+    int blockStart = getBlockStart(rows);
+    int blockEnd = getBlockEnd(rows);
+    int count = blockEnd - blockStart + 1;
 
-    // Find the full block of rows to move, expanding to contain full cycles.
-    int blockStart = selectedIndices.first();
-    int blockEnd = selectedIndices.last();
-
-    for (int i = blockStart; i <= blockEnd; ++i) {
-        if (m_regimes[i].m_cycleId != -1) {
-            int cycleId = m_regimes[i].m_cycleId;
-            int cycleStart = i;
-            while (cycleStart > 0 && m_regimes[cycleStart - 1].m_cycleId == cycleId) {
-                cycleStart--;
-            }
-            int cycleEnd = i;
-            while (cycleEnd < m_regimes.count() - 1 && m_regimes[cycleEnd + 1].m_cycleId == cycleId) {
-                cycleEnd++;
-            }
-            blockStart = qMin(blockStart, cycleStart);
-            blockEnd = qMax(blockEnd, cycleEnd);
-        }
-    }
-
-    int blockCount = blockEnd - blockStart + 1;
-    QVariantList newSelection;
-
+    int destinationChild;
     if (up) {
-        if (blockStart == 0) return rows;
-
-        int targetBlockEnd = blockStart - 1;
-        int targetCycleId = m_regimes[targetBlockEnd].m_cycleId;
-        int targetBlockStart = targetBlockEnd;
-        while (targetBlockStart > 0 && m_regimes[targetBlockStart - 1].m_cycleId == targetCycleId) {
-            targetBlockStart--;
-        }
-
-        if (beginMoveRows(QModelIndex(), blockStart, blockEnd, QModelIndex(), targetBlockStart)) {
-            QList<Regime> movedItems;
-            for (int i = 0; i < blockCount; ++i) {
-                movedItems.append(m_regimes.takeAt(blockStart));
-            }
-            for (int i = 0; i < blockCount; ++i) {
-                m_regimes.insert(targetBlockStart + i, movedItems.at(i));
-            }
-            endMoveRows();
-
-            for (int i = 0; i < blockCount; ++i) {
-                newSelection.append(targetBlockStart + i);
-            }
-        }
+        if (blockStart == 0) return rows; // Cannot move up
+        destinationChild = getBlockStart({blockStart - 1});
     } else { // Moving down
-        if (blockEnd == m_regimes.count() - 1) return rows;
-
-        int targetBlockStart = blockEnd + 1;
-        int targetCycleId = m_regimes[targetBlockStart].m_cycleId;
-        int targetBlockEnd = targetBlockStart;
-        while (targetBlockEnd < m_regimes.count() - 1 && m_regimes[targetBlockEnd + 1].m_cycleId == targetCycleId) {
-            targetBlockEnd++;
-        }
-
-        int destination = targetBlockEnd + 1;
-
-        if (beginMoveRows(QModelIndex(), blockStart, blockEnd, QModelIndex(), destination)) {
-            QList<Regime> movedItems;
-            for (int i = 0; i < blockCount; ++i) {
-                movedItems.append(m_regimes.takeAt(blockStart));
-            }
-            int insertPos = destination - blockCount;
-            for (int i = 0; i < blockCount; ++i) {
-                m_regimes.insert(insertPos + i, movedItems.at(i));
-            }
-            endMoveRows();
-
-            for (int i = 0; i < blockCount; ++i) {
-                newSelection.append(insertPos + i);
-            }
-        }
+        if (blockEnd == m_regimes.count() - 1) return rows; // Cannot move down
+        destinationChild = getBlockEnd({blockEnd + 1}) + 1;
     }
 
-    if (!newSelection.isEmpty()) {
-        updateCycleIds();
-        saveDataToJson();
+    if (moveRows(QModelIndex(), blockStart, count, QModelIndex(), destinationChild)) {
+        QVariantList newSelection;
+        int newSelectionStart;
+        if (up) {
+            newSelectionStart = destinationChild;
+        } else {
+            newSelectionStart = destinationChild - count;
+        }
+
+        for (int i = 0; i < count; ++i) {
+            newSelection.append(newSelectionStart + i);
+        }
         return newSelection;
     }
 
@@ -415,5 +368,153 @@ void ProtoTableModel::addRow(const QString &regimeName)
     newRegime.m_name = regimeName;
     m_regimes.append(newRegime);
     endInsertRows();
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
     saveDataToJson();
+}
+
+void ProtoTableModel::deleteRows(QVariantList rows)
+{
+    if (rows.isEmpty()) return;
+
+    QList<int> rowIndices;
+    for (const QVariant &row : rows) {
+        rowIndices.append(row.toInt());
+    }
+    std::sort(rowIndices.begin(), rowIndices.end());
+
+    QSet<int> cyclesToDelete;
+    for (int rowIndex : rowIndices) {
+        if (m_regimes[rowIndex].m_cycleId != -1) {
+            cyclesToDelete.insert(m_regimes[rowIndex].m_cycleId);
+        }
+    }
+
+    beginResetModel();
+
+    for (int i = m_regimes.count() - 1; i >= 0; --i) {
+        if (rowIndices.contains(i) || cyclesToDelete.contains(m_regimes[i].m_cycleId)) {
+            m_regimes.removeAt(i);
+        }
+    }
+
+    updateCycleIds();
+    endResetModel();
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
+}
+
+void ProtoTableModel::clear()
+{
+    beginResetModel();
+    m_regimes.clear();
+    endResetModel();
+}
+
+bool ProtoTableModel::isSelectionGroupable(QVariantList rows) const
+{
+    if (rows.count() < 2) return false;
+
+    int cycleCount = 0;
+    int nonCycleCount = 0;
+
+    for (const QVariant &row : rows) {
+        int rowIndex = row.toInt();
+        if (rowIndex >= 0 && rowIndex < m_regimes.count()) {
+            if (m_regimes[rowIndex].m_cycleId != -1) {
+                cycleCount++;
+            } else {
+                nonCycleCount++;
+            }
+        }
+    }
+
+    return (nonCycleCount >= 2) || (nonCycleCount >= 1 && cycleCount >=1);
+}
+
+bool ProtoTableModel::isSelectionUngroupable(QVariantList rows) const
+{
+    if (rows.isEmpty()) return false;
+
+    for (const QVariant &row : rows) {
+        int rowIndex = row.toInt();
+        if (rowIndex >= 0 && rowIndex < m_regimes.count()) {
+            if (m_regimes[rowIndex].m_cycleId != -1) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool ProtoTableModel::isMoveUpEnabled(QVariantList rows) const
+{
+    if (rows.isEmpty()) return false;
+    return getBlockStart(rows) > 0;
+}
+
+bool ProtoTableModel::isMoveDownEnabled(QVariantList rows) const
+{
+    if (rows.isEmpty()) return false;
+    return getBlockEnd(rows) < m_regimes.count() - 1;
+}
+
+QVariant ProtoTableModel::get(int row, const QByteArray& roleName) const
+{
+    int role = roleNames().key(roleName);
+    if (role == 0) { // roleName not found
+        return QVariant();
+    }
+    return data(index(row, 0), role);
+}
+
+int ProtoTableModel::getBlockStart(QVariantList rows) const
+{
+    if (rows.isEmpty()) return -1;
+
+    QList<int> selectedIndices;
+    for (const QVariant &v : rows) {
+        selectedIndices.append(v.toInt());
+    }
+    std::sort(selectedIndices.begin(), selectedIndices.end());
+
+    int blockStart = selectedIndices.first();
+
+    for (int i = 0; i < selectedIndices.count(); ++i) {
+        int rowIndex = selectedIndices[i];
+        if (m_regimes[rowIndex].m_cycleId != -1) {
+            int cycleId = m_regimes[rowIndex].m_cycleId;
+            int cycleStart = rowIndex;
+            while (cycleStart > 0 && m_regimes[cycleStart - 1].m_cycleId == cycleId) {
+                cycleStart--;
+            }
+            blockStart = qMin(blockStart, cycleStart);
+        }
+    }
+    return blockStart;
+}
+
+int ProtoTableModel::getBlockEnd(QVariantList rows) const
+{
+    if (rows.isEmpty()) return -1;
+
+    QList<int> selectedIndices;
+    for (const QVariant &v : rows) {
+        selectedIndices.append(v.toInt());
+    }
+    std::sort(selectedIndices.begin(), selectedIndices.end());
+
+    int blockEnd = selectedIndices.last();
+
+    for (int i = 0; i < selectedIndices.count(); ++i) {
+        int rowIndex = selectedIndices[i];
+        if (m_regimes[rowIndex].m_cycleId != -1) {
+            int cycleId = m_regimes[rowIndex].m_cycleId;
+            int cycleEnd = rowIndex;
+            while (cycleEnd < m_regimes.count() - 1 && m_regimes[cycleEnd + 1].m_cycleId == cycleId) {
+                cycleEnd++;
+            }
+            blockEnd = qMax(blockEnd, cycleEnd);
+        }
+    }
+    return blockEnd;
 }

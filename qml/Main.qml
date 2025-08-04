@@ -6,47 +6,33 @@ import com.grams.prototable
 import "Utils.js" as Utils
 
 ApplicationWindow {
-    width: 800
+    width: 960
     height: 480
     visible: true
     title: qsTr("ProtoTable App")
 
-    MenuBar {
-        id: menuBar
-        x: 50
-        y: 400
-        Menu {
-            title: "Добавить"
-            MenuItem {
-                text: qsTr("Вакуум")
-                onTriggered: protoTableModel.addRow("Вакуум")
-            }
-            MenuItem {
-                text: qsTr("Режим в")
-                onTriggered: protoTableModel.addRow("Режим в")
-            }
-            MenuItem {
-                text: qsTr("Режим г")
-                onTriggered: protoTableModel.addRow("Режим г")
-            }
-        }
-    }
-
     ProtoTableModel {
         id: protoTableModel
+    }
+
+    Connections {
+        target: protoTableModel
+        function onSelectionShouldBeCleared() {
+            controlsGridLayout.selectedRows = []
+        }
     }
 
     TableView {
         id: tableView
         x: 10
         y: 10
-        width: 460
+        width: 540
         height: 400
         clip: true
         columnSpacing: 1
         rowSpacing: 1
         rowHeightProvider: (row) => 40
-        property var columnWidths: [80, 270, 110]
+        property var columnWidths: [80, 270, 110, 80]
         columnWidthProvider: function (column) { return columnWidths[column] }
         boundsBehavior: TableView.StopAtBounds
         model: protoTableModel
@@ -84,6 +70,14 @@ ApplicationWindow {
                 }
             }
             DelegateChoice {
+                column: 3
+                delegate: ComboBox {
+                    model: ["Активен", "Пауза", "Пропущен"]
+                    currentIndex: model.status
+                    onCurrentIndexChanged: model.status = currentIndex
+                }
+            }
+            DelegateChoice {
                 delegate: Label{
                     text: model.display
                 }
@@ -92,60 +86,13 @@ ApplicationWindow {
     }
 
     Item {
-        x: 465
+        id: controlsView
+        x: 500
         y: 10
-        width: 140
+        width: 260
         height: 400
         GridLayout {
-            id: repeatLayout
-            columns: 1
-            rowSpacing: 1
-            Repeater {
-                model: protoTableModel
-                delegate: DelegateChooser {
-                    role: "cycle_status"
-                    DelegateChoice {
-                        roleValue: 1 // First in cycle
-                        delegate: Rectangle {
-                            height: 40 * model.span
-                            width: 120
-                            Layout.rowSpan: model.span
-                            border.width: 1
-                            SpinBox {
-                                anchors.fill: parent
-                                value: model.cycle_repeat
-                                onValueModified: model.cycle_repeat = value
-                            }
-                        }
-                    }
-                    DelegateChoice {
-                        roleValue: 0 // Not in cycle
-                        delegate: Rectangle {
-                            height: 40
-                            width: 120
-                            border.width: 1
-                            SpinBox {
-                                anchors.fill: parent
-                                value: model.repeat
-                                onValueModified: model.repeat = value
-                            }
-                        }
-                    }
-                    DelegateChoice {
-                        roleValue: 2 // Subsequent in cycle
-                        delegate: Item {}
-                    }
-                }
-            }
-        }
-    }
-    Item {
-        x: 610
-        y: 10
-        width: 60
-        height: 400
-        GridLayout {
-            id: selectLayout
+            id: controlsGridLayout
             columns: 1
             rowSpacing: 1
             property var selectedRows: []
@@ -168,21 +115,43 @@ ApplicationWindow {
                     DelegateChoice {
                         roleValue: 1 // First in cycle
                         delegate: Rectangle {
-                            width: 60
+                            width: 100
                             height: 40 * model.span
                             Layout.rowSpan: model.span
                             border.color: "black"
                             border.width: 1
-                            color: selectLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
+                            color: controlsGridLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
 
-                            MouseArea {
+                            RowLayout {
                                 anchors.fill: parent
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: (mouse) => {
-                                    if (mouse.button === Qt.LeftButton) {
-                                        selectLayout.toggleSelection(index)
-                                    } else if (mouse.button === Qt.RightButton) {
-                                        contextMenu.popup()
+                                CheckBox {
+                                    checked: controlsGridLayout.selectedRows.indexOf(index) !== -1
+                                    onClicked: controlsGridLayout.toggleSelection(index)
+                                }
+                                Button {
+                                    text: "Up"
+                                    enabled: protoTableModel.isMoveUpEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], true)
+                                }
+                                Button {
+                                    text: "Down"
+                                    enabled: protoTableModel.isMoveDownEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], false)
+                                }
+                                Button {
+                                    text: "Group"
+                                    enabled: protoTableModel.isSelectionGroupable(controlsGridLayout.selectedRows)
+                                    onClicked: {
+                                        protoTableModel.groupRows(controlsGridLayout.selectedRows.sort())
+                                        controlsGridLayout.selectedRows = []
+                                    }
+                                }
+                                Button {
+                                    text: "Ungroup"
+                                    enabled: protoTableModel.isSelectionUngroupable(controlsGridLayout.selectedRows)
+                                    onClicked: {
+                                        protoTableModel.ungroupRows(controlsGridLayout.selectedRows.sort())
+                                        controlsGridLayout.selectedRows = []
                                     }
                                 }
                             }
@@ -191,20 +160,42 @@ ApplicationWindow {
                     DelegateChoice {
                         roleValue: 0 // Not in cycle
                         delegate: Rectangle {
-                            width: 60
+                            width: 100
                             height: 40
                             border.color: "black"
                             border.width: 1
-                            color: selectLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
+                            color: controlsGridLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
 
-                            MouseArea {
+                            RowLayout {
                                 anchors.fill: parent
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: (mouse) => {
-                                    if (mouse.button === Qt.LeftButton) {
-                                        selectLayout.toggleSelection(index)
-                                    } else if (mouse.button === Qt.RightButton) {
-                                        contextMenu.popup()
+                                CheckBox {
+                                    checked: controlsGridLayout.selectedRows.indexOf(index) !== -1
+                                    onClicked: controlsGridLayout.toggleSelection(index)
+                                }
+                                Button {
+                                    text: "Up"
+                                    enabled: protoTableModel.isMoveUpEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], true)
+                                }
+                                Button {
+                                    text: "Down"
+                                    enabled: protoTableModel.isMoveDownEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], false)
+                                }
+                                Button {
+                                    text: "Group"
+                                    enabled: protoTableModel.isSelectionGroupable(controlsGridLayout.selectedRows)
+                                    onClicked: {
+                                        protoTableModel.groupRows(controlsGridLayout.selectedRows.sort())
+                                        controlsGridLayout.selectedRows = []
+                                    }
+                                }
+                                Button {
+                                    text: "Ungroup"
+                                    enabled: protoTableModel.isSelectionUngroupable(controlsGridLayout.selectedRows)
+                                    onClicked: {
+                                        protoTableModel.ungroupRows(controlsGridLayout.selectedRows.sort())
+                                        controlsGridLayout.selectedRows = []
                                     }
                                 }
                             }
@@ -218,33 +209,35 @@ ApplicationWindow {
             }
         }
     }
-    
-    Menu {
-        id: contextMenu
-        MenuItem {
-            text: qsTr("Group")
-            onTriggered: {
-                protoTableModel.groupRows(selectLayout.selectedRows.sort())
-                selectLayout.selectedRows = []
+
+    MenuBar {
+        id: menuBar
+        x: 10
+        y: 410
+        Menu {
+            title: "Добавить"
+            MenuItem {
+                text: qsTr("Вакуум")
+                onTriggered: protoTableModel.addRow("Вакуum")
+            }
+            MenuItem {
+                text: qsTr("Режим в")
+                onTriggered: protoTableModel.addRow("Режим в")
+            }
+            MenuItem {
+                text: qsTr("Режим г")
+                onTriggered: protoTableModel.addRow("Режим г")
             }
         }
-        MenuItem {
-            text: qsTr("Ungroup")
-            onTriggered: {
-                protoTableModel.ungroupRows(selectLayout.selectedRows.sort())
-                selectLayout.selectedRows = []
-            }
-        }
-        MenuItem {
-            text: qsTr("Move Up")
-            onTriggered: {
-                selectLayout.selectedRows = protoTableModel.moveRows(selectLayout.selectedRows, true)
-            }
-        }
-        MenuItem {
-            text: qsTr("Move Down")
-            onTriggered: {
-                selectLayout.selectedRows = protoTableModel.moveRows(selectLayout.selectedRows, false)
+        Menu {
+            title: "Удалить"
+            MenuItem {
+                text: "Удалить выбранные"
+                enabled: controlsGridLayout.selectedRows.length > 0
+                onTriggered: {
+                    protoTableModel.deleteRows(getSelectedRows())
+                    controlsGridLayout.selectedRows = [];
+                }
             }
         }
     }

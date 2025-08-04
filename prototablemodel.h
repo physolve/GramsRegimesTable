@@ -24,7 +24,8 @@ public:
         MaxTimeRole,
         SpanRole,
         CycleStatusRole,
-        CycleRepeatRole
+        CycleRepeatRole,
+        StatusRole
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -33,6 +34,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count, const QModelIndex &destinationParent, int destinationChild) override;
 
     QHash<int, QByteArray> roleNames() const override;
 
@@ -41,19 +43,31 @@ public:
     Q_INVOKABLE void saveDataToJson();
     Q_INVOKABLE void groupRows(QVariantList rows);
     Q_INVOKABLE void ungroupRows(QVariantList rows);
-    
-    Q_INVOKABLE QVariantList moveRows(QVariantList rows, bool up);
+    Q_INVOKABLE QVariantList moveSelection(QVariantList rows, bool up);
+
     Q_INVOKABLE void addRow(const QString &regimeName);
+    Q_INVOKABLE void deleteRows(QVariantList rows);
+    Q_INVOKABLE void clear();
+    Q_INVOKABLE bool isSelectionGroupable(QVariantList rows) const;
+    Q_INVOKABLE bool isSelectionUngroupable(QVariantList rows) const;
+    Q_INVOKABLE bool isMoveUpEnabled(QVariantList rows) const;
+    Q_INVOKABLE bool isMoveDownEnabled(QVariantList rows) const;
+
+    Q_INVOKABLE QVariant get(int row, const QByteArray& roleName) const;
+
 public slots:
     Q_INVOKABLE int getRowCount() { return m_regimes.count(); }
 
 signals:
     void regimeButtonClicked(QVariant regime);
     Q_INVOKABLE void updateRow(int row);
+    void selectionShouldBeCleared();
 
 private:
     void updateCycleIds();
     void loadDataFromJson();
+    int getBlockStart(QVariantList rows) const;
+    int getBlockEnd(QVariantList rows) const;
 
     QList<Regime> m_regimes;
     QStringList m_columnNames;

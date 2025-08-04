@@ -46,6 +46,7 @@ Regime Regime::fromJson(const QJsonObject &json) {
         QJsonObject cycleObj = json["cycle"].toObject();
         r.m_cycleId = cycleObj["id"].toInt();
         r.m_cycleRepeat = cycleObj["cycleRepeat"].toInt();
+    r.m_status = json["status"].toInt();
     }
     return r;
 }

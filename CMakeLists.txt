@@ -26,15 +26,18 @@ qt6_add_executable(${EXECUTABLE_NAME}
     main.cpp
     ${QML_RESOURCES}
 ) 
+add_library(prototablemodel STATIC prototablemodel.cpp regime.cpp)
+
+target_link_libraries(prototablemodel PRIVATE Qt6::Core)
+
 qt6_add_qml_module(${EXECUTABLE_NAME}
     URI com.grams.prototable
     VERSION 1.0
     QML_FILES
         ConditionCell.qml
+        CycleCell.qml
     SOURCES
-        prototablemodel.cpp
         prototablemodel.h
-        regime.cpp
         regime.h
 )
 
@@ -42,4 +45,8 @@ target_link_libraries(${EXECUTABLE_NAME}
     PRIVATE
         Qt6::Core
         Qt6::Quick
+        prototablemodel
 )
+
+add_subdirectory(tests)
+enable_testing()

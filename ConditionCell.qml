@@ -21,10 +21,11 @@ Row {
         //         case 2: return "both"
         //     }
         // }
-        property string curentType:  container.model.condition.type
-        currentIndex: curentType === "temp" ? 0 : (curentType === "time" ? 1 : 2)
+        currentIndex: container.model.condition.type === "temp" ? 0 : (container.model.condition.type === "time" ? 1 : 2)
         onCurrentTextChanged:{
-            curentType = currentText
+            Qt.callLater(makeChanges)
+        }
+        function makeChanges(){
             let newCond = container.model.condition
             newCond.type = typeComboBox.currentText
             container.model.condition = newCond

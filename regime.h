@@ -37,6 +37,7 @@ public:
     int m_maxTime = 0;
     int m_cycleId = -1;
     int m_cycleRepeat = 1;
+    int m_status = 0; // 0: Active, 1: Paused, 2: Skipped
 
     bool operator==(const Regime &other) const = default;
 

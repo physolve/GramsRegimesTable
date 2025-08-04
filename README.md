@@ -1,3 +1,39 @@
+## Daily Report for 2025-08-04
+
+Today's work focused on significant refactoring of the QML UI, comprehensive updates to the C++ ProtoTableModel to support new functionalities, and crucial changes in the build system.
+
+QML Refactoring (qml/Main.qml, ConditionCell.qml):
+
+ * `controlsView` Overhaul: The selection and control UI (previously `selectLayout`) has been completely refactored into `controlsGridLayout`. It now directly integrates selection checkboxes and action buttons ("Up", "Down", "Group", "Ungroup") within the delegates for each row. This eliminates the need for a separate context menu and provides more direct control.
+ * Integrated Selection Logic: Selection management (`selectedRows` property and `toggleSelection` function) was moved into `controlsGridLayout` to align with the new structure.
+ * TableView Enhancements: The TableView's column widths were adjusted, and a ComboBox was added for the new `model.status` role, allowing direct manipulation of regime statuses.
+ * Deferred Model Updates: In `ConditionCell.qml`, model updates triggered by `ComboBox` changes are now deferred using `Qt.callLater` to ensure proper signal handling.
+ * MenuBar Updates: The main `MenuBar` was repositioned and updated to include "Add" and "Delete" options, utilizing the new model functions. The old context menu was removed.
+
+C++ Model Enhancements (prototablemodel.cpp, prototablemodel.h, regime.cpp, regime.h):
+
+ * Status Management: A new `StatusRole` was added to `ProtoTableModel::Roles`, and an `m_status` member was introduced to the `Regime` struct, enabling the model to manage and expose regime statuses. `Regime::fromJson` was updated to parse this new status.
+ * Cycle ID Management: The `updateCycleIds()` function was significantly refactored to correctly re-index cycle IDs sequentially after operations, ensuring data consistency. The `SpanRole` and `CycleStatusRole` logic in `data()` was also improved for accurate UI representation.
+ * Row Manipulation API: Several new `Q_INVOKABLE` methods were added to `ProtoTableModel` to support advanced row manipulation from QML:
+     * `moveRows()`: An override of `QAbstractTableModel::moveRows` for programmatic movement.
+     * `moveSelection()`: To move selected blocks of rows (including cycles) up or down, returning the new selection.
+     * `deleteRows()`: To delete selected rows or entire cycles.
+     * `clear()`: To clear all regimes from the model.
+     * `isSelectionGroupable()`, `isSelectionUngroupable()`, `isMoveUpEnabled()`, `isMoveDown()`: Helper functions to control the enabled state of UI actions based on current selection.
+     * `get()`: A generic getter for model roles by row and role name.
+     * `getBlockStart()`, `getBlockEnd()`: New private helper functions to determine the boundaries of selected blocks, considering cycles.
+ * Improved Group/Ungroup Logic: The `groupRows()` and `ungroupRows()` functions were refined to utilize `updateCycleIds()` and emit `selectionShouldBeCleared()` after modifications, ensuring proper UI synchronization.
+
+Build System Updates (CMakeLists.txt):
+
+ * Modularization: `prototablemodel.cpp` and `regime.cpp` are now compiled into a static library named `prototablemodel`, which the main executable links against. This improves modularity.
+ * Test Integration: The `tests` directory is now included as a subdirectory in the CMake build, and testing is enabled.
+
+README.md Updates:
+
+ * Minor updates to the description of the `Group` menu item's enabling condition and general text cleanup.
+
+
 ### TODO for Monday, August 4, 2025
 
 1.  **Finalize Cycle & Selection Logic:**
