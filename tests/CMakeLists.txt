@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0) # or lower CMake version
+cmake_minimum_required(VERSION 2.8...4.0)
 project(ProtoTableTests)
 
 enable_testing()

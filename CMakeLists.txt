@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0) # or lower CMake version
+cmake_minimum_required(VERSION 2.8...4.0)
 project(example_tableview VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,6 +45,7 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
     SOURCES
         prototablemodel.h
         regime.h
+    RESOURCE_PREFIX /
 )
 
 add_subdirectory(tests)
