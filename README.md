@@ -1,3 +1,139 @@
+### TODO for Wednesday, August 6, 2025
+
+1.  **Create Unit Tests for `RegimeManager`:**
+    *   Since all file I/O and data management logic was moved to `RegimeManager`, it's crucial to create a new test suite for it.
+    *   Write tests for `loadDefaultRegimes`, `importRegimes`, `exportRegimes`, and `saveRegimes`.
+    *   This will likely involve creating temporary JSON files within the test suite to verify that files are read and written correctly.
+
+2.  **Implement "Unsaved Changes" Tracking:**
+    *   Add a "dirty" flag to `RegimeManager` to track unsaved modifications.
+    *   Update the application title to indicate unsaved changes (e.g., with an `*`).
+    *   Implement a confirmation dialog on close or import if there are unsaved changes.
+
+3.  **Refactor QML Delegates in `controlsView`:**
+    *   The `Repeater` delegate in `controlsView` inside `Main.qml` has two large, nearly identical `DelegateChoice` blocks for rows that are in a cycle and rows that are not.
+    *   Refactor this into a single delegate component to reduce code duplication and improve maintainability. The properties of this single delegate can be dynamically bound based on the `model.cycle_status`.
+
+4.  **Implement Regime "State" Property:**
+    *   Add a `state` property to the `Regime` struct in C++.
+    *   Update JSON serialization/deserialization to handle the new `state` field.
+    *   Expose the `state` property to QML and add a UI control (e.g., a ComboBox) in the `TableView` delegate to allow viewing and editing it.
+
+5.  **Define and Implement Table Module API:**
+    *   Once the above tasks are complete, design and implement a more formal API for the table module (`RegimeManager` and `ProtoTableModel`) to improve modularity and prepare for future external interactions.
+
+---
+
+### План работ на среду, 6 августа 2025 г.
+
+1.  **Создать юнит-тесты для `RegimeManager`:**
+    *   Написать новый набор тестов для класса `RegimeManager`, чтобы проверить всю логику файлового ввода-вывода и управления данными.
+    *   Протестировать `loadDefaultRegimes`, `importRegimes`, `exportRegimes` и `saveRegimes`, вероятно, с использованием временных файлов.
+
+2.  **Реализовать отслеживание несохраненных изменений:**
+    *   Добавить флаг "dirty" в `RegimeManager` для отслеживания несохраненных изменений.
+    *   Обновлять заголовок окна приложения для индикации несохраненных изменений (например, с помощью `*`).
+    *   Реализовать диалог подтверждения при закрытии или импорте, если есть несохраненные изменения.
+
+3.  **Рефакторинг делегатов QML в `controlsView`:**
+    *   Выполнить рефакторинг делегата `Repeater` в `controlsView`, объединив его в единый, переиспользуемый компонент для уменьшения дублирования кода.
+
+4.  **Реализовать свойство "state" для режимов:**
+    *   Добавить свойство `state` в структуру `Regime` в C++.
+    *   Обновить сериализацию/десериализацию JSON для обработки нового поля `state`.
+    *   Предоставить свойство `state` в QML и добавить элемент управления (например, ComboBox) в делегат `TableView` для его просмотра и редактирования.
+
+5.  **Спроектировать и реализовать API для модуля таблицы:**
+    *   После завершения вышеуказанных задач, спроектировать и реализовать более формальный API для модуля таблицы (`RegimeManager` и `ProtoTableModel`), чтобы улучшить модульность и подготовиться к будущим внешним взаимодействиям.
+
+---
+
+## Daily Report for 2025-08-05
+
+Today's session involved a major architectural refactoring to centralize data management, streamline file operations, and improve the overall user experience.
+
+### Architectural Changes:
+
+*   **Centralized Data Management with `RegimeManager`:**
+    *   The `RegimeManager` class has been promoted to be the single source of truth for the application's data. It now creates and owns the `ProtoTableModel` instance.
+    *   In `main.cpp`, `RegimeManager` is now registered as a QML Singleton, making a single instance available throughout the QML interface, which simplifies the data flow significantly.
+    *   Consequently, the `ProtoTableModel` is no longer registered as a QML type, and the local instance in `Main.qml` has been removed. All QML components now access the model via `RegimeManager.model`.
+
+### C++ Refactoring:
+
+*   **`RegimeManager` Enhancements:**
+    *   All file I/O logic (`loadRegimesFromFile`, `saveRegimesToFile`) is now consolidated within `RegimeManager`.
+    *   Implemented a new `currentFilePath` property to track the currently open file.
+    *   Added new `Q_INVOKABLE` methods:
+        *   `saveRegimes()`: Saves changes to the `currentFilePath` without a dialog.
+        *   `saveRegimesAs()`: Saves the current data to a new file specified by a dialog.
+    *   `importRegimes()` now updates the `currentFilePath`.
+    *   `loadDefaultRegimes()` now correctly sets the path to the default JSON file as the `currentFilePath`.
+*   **`ProtoTableModel` Simplification:**
+    *   Removed the now-redundant `loadDataFromJson()` and `saveDataToJson()` methods. The model is now purely an in-memory data structure managed by `RegimeManager`.
+    *   Added `setRegimes()` and `getRegimes()` methods for `RegimeManager` to control the model's data.
+    *   Improved the `deleteRows()` logic to correctly handle the deletion of entire cycles when any part of a cycle is selected.
+
+### QML UI/UX Improvements:
+
+*   **File Operations:**
+    *   Replaced the single `FileDialog` with two distinct dialogs: `openFileDialog` for importing and `saveAsFileDialog` for "Save As" and "Export" operations.
+    *   The "Файл" (File) menu was completely reworked:
+        *   "Сохранить" (Save) is now enabled only when a file is loaded (`RegimeManager.currentFilePath` is valid) and calls `RegimeManager.saveRegimes()`.
+        *   A new "Сохранить как..." (Save As...) menu item was added, which always opens the `saveAsFileDialog`.
+        *   "Импорт" (Import) and "Экспорт" (Export) now use their respective file dialogs.
+*   **Code Cleanup:**
+    *   Corrected all QML code to use the proper singleton accessor `RegimeManager` (uppercase) instead of the incorrect `regimeManager` (lowercase).
+
+### Build System & Testing:
+
+*   **CMake:** Updated `CMakeLists.txt` to include the new `regimemanager.h` and `regimemanager.cpp` files in the build.
+*   **Tests:** The unit tests in `test_prototablemodel.cpp` were simplified to reflect the model's reduced responsibilities, with direct file I/O tests being removed.
+
+---
+
+## Ежедневный отчет за 2025-08-05
+
+Сегодняшняя сессия включала в себя крупный архитектурный рефакторинг с целью централизации управления данными, оптимизации файловых операций и улучшения общего пользовательского опыта.
+
+### Архитектурные изменения:
+
+*   **Централизованное управление данными с помощью `RegimeManager`:**
+    *   Класс `RegimeManager` был назначен единственным источником истины для данных приложения. Теперь он создает и владеет экземпляром `ProtoTableModel`.
+    *   В `main.cpp` `RegimeManager` теперь зарегистрирован как Singleton в QML, что делает единый экземпляр доступным во всем интерфейсе QML и значительно упрощает поток данных.
+    *   Соответственно, `ProtoTableModel` больше не регистрируется как тип QML, а локальный экземпляр в `Main.qml` был удален. Все компоненты QML теперь получают доступ к модели через `RegimeManager.model`.
+
+### Рефакторинг C++:
+
+*   **Улучшения `RegimeManager`:**
+    *   Вся логика файлового ввода-вывода (`loadRegimesFromFile`, `saveRegimesToFile`) теперь консолидирована в `RegimeManager`.
+    *   Реализовано новое свойство `currentFilePath` для отслеживания текущего открытого файла.
+    *   Добавлены новые `Q_INVOKABLE` методы:
+        *   `saveRegimes()`: Сохраняет изменения в `currentFilePath` без диалогового окна.
+        *   `saveRegimesAs()`: Сохраняет текущие данные в новый файл, указанный через диалоговое окно.
+    *   `importRegimes()` теперь обновляет `currentFilePath`.
+    *   `loadDefaultRegimes()` теперь корректно устанавливает путь к файлу JSON по умолчанию в качестве `currentFilePath`.
+*   **Упрощение `ProtoTableModel`:**
+    *   Удалены ставшие избыточными методы `loadDataFromJson()` и `saveDataToJson()`. Модель теперь является исключительно структурой данных в памяти, управляемой `RegimeManager`.
+    *   Добавлены методы `setRegimes()` и `getRegimes()` для управления данными модели из `RegimeManager`.
+    *   Улучшена логика `deleteRows()` для корректной обработки удаления целых циклов при выборе любой их части.
+
+### Улучшения QML UI/UX:
+
+*   **Файловые операции:**
+    *   Единый `FileDialog` был заменен двумя отдельными диалогами: `openFileDialog` для импорта и `saveAsFileDialog` для операций «Сохранить как» и «Экспорт».
+    *   Меню «Файл» было полностью переработано:
+        *   «Сохранить» теперь активно только тогда, когда файл загружен (`RegimeManager.currentFilePath` действителен), и вызывает `RegimeManager.saveRegimes()`.
+        *   Добавлен новый пункт меню «Сохранить как...», который всегда открывает `saveAsFileDialog`.
+        *   «Импорт» и «Экспорт» теперь используют свои соответствующие файловые диалоги.
+*   **Очистка кода:**
+    *   Исправлен весь код QML для использования правильного имени синглтона `RegimeManager` (с заглавной буквы) вместо неверного `regimeManager` (со строчной буквы).
+
+### Система сборки и тестирование:
+
+*   **CMake:** Обновлен `CMakeLists.txt` для включения новых файлов `regimemanager.h` и `regimemanager.cpp` в сборку.
+*   **Тесты:** Модульные тесты в `test_prototablemodel.cpp` были упрощены, чтобы отразить уменьшение ответственности модели; тесты прямого файлового ввода-вывода были удалены.
+
 ## Daily Report for 2025-08-04
 
 Today's work focused on significant refactoring of the QML UI, comprehensive updates to the C++ ProtoTableModel to support new functionalities, and crucial changes in the build system.
@@ -215,18 +351,6 @@ Overall, today's changes have made the application more robust and feature-rich,
 - Updated `qml/Main.qml` to use `DelegateChooser` for column 0 (Button for regime name), column 2 (SpinBox for repeat count), and column 3 (TextField for max time), utilizing the new specific role names (`model.regime.name`, `model.repeat`, `model.max_time`).
 - Successfully debugged and resolved multiple build and runtime errors, including CMake configuration issues, linker errors, and QML binding problems.
 - Learned and applied the correct pattern for updating model data from QML delegates by explicitly assigning modified data back to the model's roles.
-
-## Ежедневный отчет - 2025-07-30
-
-- Рефакторинг классов `Regime` и `Condition` для использования `Q_GADGET` для повышения производительности и управления памятью, а также для обеспечения передачи по значению.
-- Обновлена `ProtoTableModel` для хранения объектов `Regime` по значению (`QList<Regime>`) и соответствующей настройки загрузки, сохранения и обработки данных.
-- Реализованы методы `toJson()` и `fromJson()` для структур `Regime` и `Condition`, а также добавлен `operator==` для правильного сравнения.
-- Исправлен `main.cpp` для правильной регистрации типов `Q_GADGET` с использованием `qRegisterMetaType`.
-- Восстановлен и улучшен `ConditionCell.qml` для включения `ComboBox` для типа условия и `TextField` для `temp` и `time`, обеспечивая правильную привязку данных и явные обновления модели через `model.condition = newCondition`.
-- Добавлены `RepeatRole` и `MaxTimeRole` в `ProtoTableModel` для предоставления `m_repeatCount` и `m_maxTime` из класса `Regime`.
-- Обновлен `qml/Main.qml` для использования `DelegateChooser` для столбца 0 (кнопка для имени режима), столбца 2 (SpinBox для количества повторений) и столбца 3 (TextField для максимального времени), используя новые специфические имена ролей (`model.regime.name`, `model.repeat`, `model.max_time`).
-- Успешно отлажены и устранены многочисленные ошибки сборки и выполнения, включая проблемы с конфигурацией CMake, ошибки компоновщика и проблемы с привязкой QML.
-- Изучен и применен правильный шаблон для обновления данных модели из делегатов QML путем явного присвоения измененных данных ролям модели.
 
 ## TODO for 2025-07-30
 

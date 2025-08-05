@@ -5,18 +5,34 @@ import QtQuick.Layouts
 import com.grams.prototable
 import "Utils.js" as Utils
 
+import QtQuick.Dialogs
+
 ApplicationWindow {
     width: 960
     height: 480
     visible: true
     title: qsTr("ProtoTable App")
 
-    ProtoTableModel {
-        id: protoTableModel
+    FileDialog {
+        id: openFileDialog
+        title: "Please choose a file to open"
+        fileMode: FileDialog.OpenFile
+        onAccepted: {
+            RegimeManager.importRegimes(fileUrl)
+        }
+    }
+
+    FileDialog {
+        id: saveAsFileDialog
+        title: "Please choose a file to save"
+        fileMode: FileDialog.SaveFile
+        onAccepted: {
+            RegimeManager.saveRegimesAs(fileUrl)
+        }
     }
 
     Connections {
-        target: protoTableModel
+        target: RegimeManager.model
         function onSelectionShouldBeCleared() {
             controlsGridLayout.selectedRows = []
         }
@@ -35,9 +51,9 @@ ApplicationWindow {
         property var columnWidths: [80, 270, 110, 80]
         columnWidthProvider: function (column) { return columnWidths[column] }
         boundsBehavior: TableView.StopAtBounds
-        model: protoTableModel
+        model: RegimeManager.model
         selectionModel: ItemSelectionModel {
-            model: protoTableModel
+            model: RegimeManager.model
         }
 
         delegate: DelegateChooser {
@@ -108,7 +124,7 @@ ApplicationWindow {
                 selectedRows = newSelection;
             }
             Repeater {
-                model: protoTableModel
+                model: RegimeManager.model
                 delegate: DelegateChooser {
                     role: "cycle_status"
                     DelegateChoice {
@@ -129,26 +145,26 @@ ApplicationWindow {
                                 }
                                 Button {
                                     text: "Up"
-                                    enabled: protoTableModel.isMoveUpEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], true)
+                                    enabled: RegimeManager.model.isMoveUpEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], true)
                                 }
                                 Button {
                                     text: "Down"
-                                    enabled: protoTableModel.isMoveDownEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], false)
+                                    enabled: RegimeManager.model.isMoveDownEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], false)
                                 }
                                 Button {
                                     text: "Group"
-                                    enabled: protoTableModel.isSelectionGroupable(controlsGridLayout.selectedRows)
+                                    enabled: RegimeManager.model.isSelectionGroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
-                                        protoTableModel.groupRows(controlsGridLayout.selectedRows.sort())
+                                        RegimeManager.model.groupRows(controlsGridLayout.selectedRows.sort())
                                     }
                                 }
                                 Button {
                                     text: "Ungroup"
-                                    enabled: protoTableModel.isSelectionUngroupable(controlsGridLayout.selectedRows)
+                                    enabled: RegimeManager.model.isSelectionUngroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
-                                        protoTableModel.ungroupRows(controlsGridLayout.selectedRows.sort())
+                                        RegimeManager.model.ungroupRows(controlsGridLayout.selectedRows.sort())
                                     }
                                 }
                             }
@@ -171,26 +187,26 @@ ApplicationWindow {
                                 }
                                 Button {
                                     text: "Up"
-                                    enabled: protoTableModel.isMoveUpEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], true)
+                                    enabled: RegimeManager.model.isMoveUpEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], true)
                                 }
                                 Button {
                                     text: "Down"
-                                    enabled: protoTableModel.isMoveDownEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = protoTableModel.moveSelection([index], false)
+                                    enabled: RegimeManager.model.isMoveDownEnabled([index])
+                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], false)
                                 }
                                 Button {
                                     text: "Group"
-                                    enabled: protoTableModel.isSelectionGroupable(controlsGridLayout.selectedRows)
+                                    enabled: RegimeManager.model.isSelectionGroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
-                                        protoTableModel.groupRows(controlsGridLayout.selectedRows.sort())
+                                        RegimeManager.model.groupRows(controlsGridLayout.selectedRows.sort())
                                     }
                                 }
                                 Button {
                                     text: "Ungroup"
-                                    enabled: protoTableModel.isSelectionUngroupable(controlsGridLayout.selectedRows)
+                                    enabled: RegimeManager.model.isSelectionUngroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
-                                        protoTableModel.ungroupRows(controlsGridLayout.selectedRows.sort())
+                                        RegimeManager.model.ungroupRows(controlsGridLayout.selectedRows.sort())
                                     }
                                 }
                             }
@@ -213,18 +229,38 @@ ApplicationWindow {
         x: 10
         y: 410
         Menu {
+            title: "Файл"
+            MenuItem {
+                text: qsTr("Сохранить")
+                enabled: RegimeManager.currentFilePath
+                onTriggered: RegimeManager.saveRegimes()
+            }
+            MenuItem {
+                text: qsTr("Сбросить")
+                onTriggered: RegimeManager.loadDefaultRegimes()
+            }
+            MenuItem {
+                text: qsTr("Импорт")
+                onTriggered: openFileDialog.open()
+            }
+            MenuItem {
+                text: qsTr("Экспорт")
+                onTriggered: saveAsFileDialog.open()
+            }
+        }
+        Menu {
             title: "Добавить"
             MenuItem {
                 text: qsTr("Вакуум")
-                onTriggered: protoTableModel.addRow("Вакуum")
+                onTriggered: RegimeManager.model.addRow("Вакуум")
             }
             MenuItem {
                 text: qsTr("Режим в")
-                onTriggered: protoTableModel.addRow("Режим в")
+                onTriggered: RegimeManager.model.addRow("Режим в")
             }
             MenuItem {
                 text: qsTr("Режим г")
-                onTriggered: protoTableModel.addRow("Режим г")
+                onTriggered: RegimeManager.model.addRow("Режим г")
             }
         }
         Menu {
@@ -233,7 +269,7 @@ ApplicationWindow {
                 text: "Удалить выбранные"
                 enabled: controlsGridLayout.selectedRows.length > 0
                 onTriggered: {
-                    protoTableModel.deleteRows(getSelectedRows())
+                    RegimeManager.model.deleteRows(controlsGridLayout.selectedRows)
                     controlsGridLayout.selectedRows = [];
                 }
             }

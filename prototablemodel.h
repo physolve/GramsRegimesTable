@@ -40,7 +40,9 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-    Q_INVOKABLE void saveDataToJson();
+    Q_INVOKABLE void setRegimes(const QList<Regime> &regimes);
+    Q_INVOKABLE QList<Regime> getRegimes() const;
+
     Q_INVOKABLE void groupRows(QVariantList rows);
     Q_INVOKABLE void ungroupRows(QVariantList rows);
     Q_INVOKABLE QVariantList moveSelection(QVariantList rows, bool up);
@@ -65,7 +67,6 @@ signals:
 
 private:
     void updateCycleIds();
-    void loadDataFromJson();
     int getBlockStart(QVariantList rows) const;
     int getBlockEnd(QVariantList rows) const;
 

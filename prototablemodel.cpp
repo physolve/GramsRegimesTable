@@ -15,59 +15,10 @@ void ProtoTableModel::updateCycleIds()
     }
 }
 
-void ProtoTableModel::loadDataFromJson()
-{
-    QDir dir("profile");
-    if(!dir.exists()) 
-        return;
-    QFile file;
-    file.setFileName(dir.filePath("regime_a.json"));
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning("Couldn't open regime_a.json");
-        return;
-    }
-
-    QByteArray data = file.readAll();
-    QJsonDocument doc(QJsonDocument::fromJson(data));
-    QJsonArray regimesArray = doc.array();
-
-    beginResetModel();
-    m_regimes.clear();
-
-    for (const QJsonValue &value : regimesArray) {
-        m_regimes.append(Regime::fromJson(value.toObject()));
-    }
-
-    endResetModel();
-}
-
-void ProtoTableModel::saveDataToJson()
-{
-    QDir dir("profile");
-    if(!dir.exists()) 
-        return;
-    QFile file;
-    file.setFileName(dir.filePath("regime_a.json"));
-    if (!file.open(QIODevice::WriteOnly)) {
-        qWarning("Couldn't open file for writing");
-        return;
-    }
-
-    QJsonArray regimesArray;
-    for (const auto &regime : m_regimes) {
-        regimesArray.append(regime.toJson());
-    }
-
-    QJsonDocument doc(regimesArray);
-    file.write(doc.toJson());
-    file.close();
-}
-
 ProtoTableModel::ProtoTableModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
     m_columnNames << "Режим" << "Условие" << "Макс. время";
-    loadDataFromJson();
 }
 
 int ProtoTableModel::rowCount(const QModelIndex &parent) const
@@ -251,7 +202,6 @@ bool ProtoTableModel::moveRows(const QModelIndex &sourceParent, int sourceRow, i
     endMoveRows();
     updateCycleIds();
     emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
-    saveDataToJson();
     return true;
 }
 
@@ -272,6 +222,18 @@ QHash<int, QByteArray> ProtoTableModel::roleNames() const
 Qt::ItemFlags ProtoTableModel::flags(const QModelIndex &index) const
 {
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
+}
+
+void ProtoTableModel::setRegimes(const QList<Regime> &regimes)
+{
+    beginResetModel();
+    m_regimes = regimes;
+    endResetModel();
+}
+
+QList<Regime> ProtoTableModel::getRegimes() const
+{
+    return m_regimes;
 }
 
 void ProtoTableModel::groupRows(QVariantList rows)
@@ -380,38 +342,58 @@ void ProtoTableModel::addRow(const QString &regimeName)
     newRegime.m_name = regimeName;
     m_regimes.append(newRegime);
     endInsertRows();
-    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
-    saveDataToJson();
+    if (rowCount() > 1) {
+        emit dataChanged(index(0, 0), index(rowCount() - 2, columnCount() - 1), {CycleStatusRole, SpanRole});
+    }
 }
 
 void ProtoTableModel::deleteRows(QVariantList rows)
 {
     if (rows.isEmpty()) return;
 
-    QList<int> rowIndices;
+    QSet<int> indicesToRemoveSet;
     for (const QVariant &row : rows) {
-        rowIndices.append(row.toInt());
-    }
-    std::sort(rowIndices.begin(), rowIndices.end());
+        bool ok;
+        int rowIndex = row.toInt(&ok);
+        if (!ok || rowIndex < 0 || rowIndex >= m_regimes.count()) continue;
 
-    QSet<int> cyclesToDelete;
-    for (int rowIndex : rowIndices) {
         if (m_regimes[rowIndex].m_cycleId != -1) {
-            cyclesToDelete.insert(m_regimes[rowIndex].m_cycleId);
+            int cycleId = m_regimes[rowIndex].m_cycleId;
+            for (int i = 0; i < m_regimes.count(); ++i) {
+                if (m_regimes[i].m_cycleId == cycleId) {
+                    indicesToRemoveSet.insert(i);
+                }
+            }
+        } else {
+            indicesToRemoveSet.insert(rowIndex);
         }
     }
 
-    beginResetModel();
+    QList<int> sortedIndicesToRemove = indicesToRemoveSet.values();
+    std::sort(sortedIndicesToRemove.begin(), sortedIndicesToRemove.end());
 
-    for (int i = m_regimes.count() - 1; i >= 0; --i) {
-        if (rowIndices.contains(i) || cyclesToDelete.contains(m_regimes[i].m_cycleId)) {
-            m_regimes.removeAt(i);
+    if (sortedIndicesToRemove.isEmpty()) return;
+
+    int i = sortedIndicesToRemove.count() - 1;
+    while (i >= 0) {
+        int lastRow = sortedIndicesToRemove[i];
+        int firstRow = lastRow;
+        while (i > 0 && sortedIndicesToRemove[i-1] == firstRow - 1) {
+            firstRow--;
+            i--;
         }
+
+        beginRemoveRows(QModelIndex(), firstRow, lastRow);
+        m_regimes.remove(firstRow, lastRow - firstRow + 1);
+        endRemoveRows();
+
+        i--;
     }
 
     updateCycleIds();
-    endResetModel();
-    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
+    if (rowCount() > 0) {
+        emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, SpanRole});
+    }
 }
 
 void ProtoTableModel::clear()

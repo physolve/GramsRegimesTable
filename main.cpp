@@ -1,17 +1,20 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include "prototablemodel.h"
 #include "regime.h"
+#include "regimemanager.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
     qRegisterMetaType<Condition>();
-    qmlRegisterType<ProtoTableModel>("com.grams.prototable", 1, 0, "ProtoTableModel");
 
     QQmlApplicationEngine engine;
-    const QUrl url(u"qrc:/prototype_table/qml/Main.qml"_qs);
+    RegimeManager regimeManager;
+    qmlRegisterSingletonInstance("com.grams.prototable", 1, 0, "RegimeManager", &regimeManager);
+    const QUrl url("qrc:/prototype_table/qml/Main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
         &app, [url](QObject *obj, const QUrl &objUrl) {
             if (!obj && url == objUrl)
