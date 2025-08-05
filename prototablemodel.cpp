@@ -278,6 +278,8 @@ void ProtoTableModel::groupRows(QVariantList rows)
 {
     if (rows.count() < 2) return;
 
+    qDebug() << "groupRows called with rows:" << rows;
+
     int newCycleId = 0;
     for (const auto &regime : m_regimes) {
         if (regime.m_cycleId > newCycleId) {
@@ -286,21 +288,27 @@ void ProtoTableModel::groupRows(QVariantList rows)
     }
     newCycleId++;
 
+    qDebug() << "New cycle ID will be:" << newCycleId;
+    
     for (const QVariant &rowVariant : rows) {
         int row = rowVariant.toInt();
         if (row >= 0 && row < m_regimes.count()) {
             m_regimes[row].m_cycleId = newCycleId;
+        } else {
+            qWarning() << "groupRows: Invalid row index" << row;
         }
     }
 
     updateCycleIds();
-    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, SpanRole});
     emit selectionShouldBeCleared();
 }
 
 void ProtoTableModel::ungroupRows(QVariantList rows)
 {
     if (rows.isEmpty()) return;
+
+    qDebug() << "ungroupRows called with rows:" << rows;
 
     QSet<int> cyclesToUngroup;
     for (const QVariant &rowVariant : rows) {
@@ -309,10 +317,14 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
             if (m_regimes[row].m_cycleId != -1) {
                 cyclesToUngroup.insert(m_regimes[row].m_cycleId);
             }
+        } else {
+            qWarning() << "ungroupRows: Invalid row index" << row;
         }
     }
 
     if (cyclesToUngroup.isEmpty()) return;
+
+    qDebug() << "Cycles to ungroup:" << cyclesToUngroup;
 
     for (int i = 0; i < m_regimes.count(); ++i) {
         if (cyclesToUngroup.contains(m_regimes[i].m_cycleId)) {
@@ -321,7 +333,7 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
     }
 
     updateCycleIds();
-    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {SpanRole, RepeatRole, CycleRepeatRole, CycleStatusRole});
     emit selectionShouldBeCleared();
 }
 
@@ -449,13 +461,15 @@ bool ProtoTableModel::isSelectionUngroupable(QVariantList rows) const
 bool ProtoTableModel::isMoveUpEnabled(QVariantList rows) const
 {
     if (rows.isEmpty()) return false;
-    return getBlockStart(rows) > 0;
+    int blockStart = getBlockStart(rows);
+    return blockStart > 0;
 }
 
 bool ProtoTableModel::isMoveDownEnabled(QVariantList rows) const
 {
     if (rows.isEmpty()) return false;
-    return getBlockEnd(rows) < m_regimes.count() - 1;
+    int blockEnd = getBlockEnd(rows);
+    return blockEnd != -1 && blockEnd < m_regimes.count() - 1;
 }
 
 QVariant ProtoTableModel::get(int row, const QByteArray& roleName) const
@@ -473,9 +487,17 @@ int ProtoTableModel::getBlockStart(QVariantList rows) const
 
     QList<int> selectedIndices;
     for (const QVariant &v : rows) {
-        selectedIndices.append(v.toInt());
+        bool ok;
+        int index = v.toInt(&ok);
+        if (!ok || index < 0 || index >= m_regimes.count()) {
+            qWarning() << "getBlockStart: Invalid row index in list:" << v;
+            return -1; // Invalid index
+        }
+        selectedIndices.append(index);
     }
     std::sort(selectedIndices.begin(), selectedIndices.end());
+
+    if (selectedIndices.isEmpty()) return -1;
 
     int blockStart = selectedIndices.first();
 
@@ -499,9 +521,17 @@ int ProtoTableModel::getBlockEnd(QVariantList rows) const
 
     QList<int> selectedIndices;
     for (const QVariant &v : rows) {
-        selectedIndices.append(v.toInt());
+        bool ok;
+        int index = v.toInt(&ok);
+        if (!ok || index < 0 || index >= m_regimes.count()) {
+            qWarning() << "getBlockEnd: Invalid row index in list:" << v;
+            return -1; // Invalid index
+        }
+        selectedIndices.append(index);
     }
     std::sort(selectedIndices.begin(), selectedIndices.end());
+
+    if (selectedIndices.isEmpty()) return -1;
 
     int blockEnd = selectedIndices.last();
 

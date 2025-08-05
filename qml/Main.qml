@@ -107,7 +107,6 @@ ApplicationWindow {
                 }
                 selectedRows = newSelection;
             }
-
             Repeater {
                 model: protoTableModel
                 delegate: DelegateChooser {
@@ -143,7 +142,6 @@ ApplicationWindow {
                                     enabled: protoTableModel.isSelectionGroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
                                         protoTableModel.groupRows(controlsGridLayout.selectedRows.sort())
-                                        controlsGridLayout.selectedRows = []
                                     }
                                 }
                                 Button {
@@ -151,7 +149,6 @@ ApplicationWindow {
                                     enabled: protoTableModel.isSelectionUngroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
                                         protoTableModel.ungroupRows(controlsGridLayout.selectedRows.sort())
-                                        controlsGridLayout.selectedRows = []
                                     }
                                 }
                             }
@@ -187,7 +184,6 @@ ApplicationWindow {
                                     enabled: protoTableModel.isSelectionGroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
                                         protoTableModel.groupRows(controlsGridLayout.selectedRows.sort())
-                                        controlsGridLayout.selectedRows = []
                                     }
                                 }
                                 Button {
@@ -195,15 +191,17 @@ ApplicationWindow {
                                     enabled: protoTableModel.isSelectionUngroupable(controlsGridLayout.selectedRows)
                                     onClicked: {
                                         protoTableModel.ungroupRows(controlsGridLayout.selectedRows.sort())
-                                        controlsGridLayout.selectedRows = []
                                     }
                                 }
                             }
                         }
                     }
                     DelegateChoice {
-                        roleValue: 2 // Subsequent in cycle
-                        delegate: Item {}
+                        roleValue: 2
+                        delegate: Rectangle {
+                            width: 100
+                            height: 2
+                        }
                     }
                 }
             }
