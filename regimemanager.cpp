@@ -9,6 +9,7 @@ RegimeManager::RegimeManager(QObject *parent)
     : QObject{parent}, m_model(this)
 {
     loadDefaultRegimes();
+    connect(&m_model, &ProtoTableModel::dataChanged, this, [this]() { setDirty(true); });
 }
 
 ProtoTableModel* RegimeManager::model()
@@ -29,12 +30,26 @@ void RegimeManager::setCurrentFilePath(const QUrl &url)
     }
 }
 
+bool RegimeManager::dirty() const
+{
+    return m_dirty;
+}
+
+void RegimeManager::setDirty(bool dirty)
+{
+    if (m_dirty != dirty) {
+        m_dirty = dirty;
+        emit dirtyChanged();
+    }
+}
+
 void RegimeManager::importRegimes(const QUrl &filePath)
 {
     QList<Regime> regimes = loadRegimesFromFile(filePath.toLocalFile());
     m_model.clear();
     m_model.setRegimes(regimes);
     setCurrentFilePath(filePath);
+    setDirty(false);
 }
 
 void RegimeManager::exportRegimes(const QUrl &filePath)
@@ -46,6 +61,7 @@ void RegimeManager::saveRegimes()
 {
     if (m_currentFilePath.isEmpty() || !m_currentFilePath.isValid()) return;
     saveRegimesToFile(m_model.getRegimes(), m_currentFilePath.toLocalFile());
+    setDirty(false);
 }
 
 void RegimeManager::saveRegimesAs(const QUrl &filePath)
@@ -61,6 +77,7 @@ void RegimeManager::loadDefaultRegimes()
     m_model.clear();
     m_model.setRegimes(regimes);
     setCurrentFilePath(QUrl::fromLocalFile(defaultFilePath));
+    setDirty(false);
 }
 
 QList<Regime> RegimeManager::loadRegimesFromFile(const QString &filePath)

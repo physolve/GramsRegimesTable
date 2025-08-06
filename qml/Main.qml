@@ -11,14 +11,42 @@ ApplicationWindow {
     width: 960
     height: 480
     visible: true
-    title: qsTr("ProtoTable App")
+    title: qsTr("ProtoTable App") + (RegimeManager.dirty ? " *" : "")
+
+    onClosing: function(close) {
+        if (RegimeManager.dirty) {
+            close.accepted = false;
+            unsavedChangesDialog.open();
+        }
+    }
+
+    Dialog {
+        id: unsavedChangesDialog
+        title: "Unsaved Changes"
+        standardButtons: Dialog.Save | Dialog.Discard | Dialog.Cancel
+        modal: true
+        visible: false
+
+        onAccepted: {
+            RegimeManager.saveRegimes();
+            Qt.quit();
+        }
+
+        onDiscarded: {
+            Qt.exit(0);
+        }
+    }
 
     FileDialog {
         id: openFileDialog
         title: "Please choose a file to open"
         fileMode: FileDialog.OpenFile
         onAccepted: {
-            RegimeManager.importRegimes(fileUrl)
+            if (RegimeManager.dirty) {
+                unsavedChangesDialog.open();
+            } else {
+                RegimeManager.importRegimes(fileUrl)
+            }
         }
     }
 
@@ -28,13 +56,6 @@ ApplicationWindow {
         fileMode: FileDialog.SaveFile
         onAccepted: {
             RegimeManager.saveRegimesAs(fileUrl)
-        }
-    }
-
-    Connections {
-        target: RegimeManager.model
-        function onSelectionShouldBeCleared() {
-            controlsGridLayout.selectedRows = []
         }
     }
 
@@ -107,116 +128,47 @@ ApplicationWindow {
         y: 10
         width: 260
         height: 400
+        function getSelectedRows(){
+            let selectedRows = []
+            for(let i = 0; i < repeater.count; i++){
+                if(repeater.itemAt(i).isSelected)
+                {
+                    selectedRows.push(i)
+                }
+            }                        
+            return selectedRows
+        }
         GridLayout {
             id: controlsGridLayout
             columns: 1
             rowSpacing: 1
-            property var selectedRows: []
-
-            function toggleSelection(index) {
-                var newSelection = selectedRows.slice();
-                var idx = newSelection.indexOf(index);
-                if (idx === -1) {
-                    newSelection.push(index);
-                } else {
-                    newSelection.splice(idx, 1);
-                }
-                selectedRows = newSelection;
-            }
             Repeater {
+                id: repeater
                 model: RegimeManager.model
                 delegate: DelegateChooser {
                     role: "cycle_status"
                     DelegateChoice {
-                        roleValue: 1 // First in cycle
-                        delegate: Rectangle {
-                            width: 100
+                        roleValue: 1
+                        delegate: ControlDelegate {
+                            width: 250
                             height: 40 * model.span
                             Layout.rowSpan: model.span
-                            border.color: "black"
-                            border.width: 1
-                            color: controlsGridLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
-
-                            RowLayout {
-                                anchors.fill: parent
-                                CheckBox {
-                                    checked: controlsGridLayout.selectedRows.indexOf(index) !== -1
-                                    onClicked: controlsGridLayout.toggleSelection(index)
-                                }
-                                Button {
-                                    text: "Up"
-                                    enabled: RegimeManager.model.isMoveUpEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], true)
-                                }
-                                Button {
-                                    text: "Down"
-                                    enabled: RegimeManager.model.isMoveDownEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], false)
-                                }
-                                Button {
-                                    text: "Group"
-                                    enabled: RegimeManager.model.isSelectionGroupable(controlsGridLayout.selectedRows)
-                                    onClicked: {
-                                        RegimeManager.model.groupRows(controlsGridLayout.selectedRows.sort())
-                                    }
-                                }
-                                Button {
-                                    text: "Ungroup"
-                                    enabled: RegimeManager.model.isSelectionUngroupable(controlsGridLayout.selectedRows)
-                                    onClicked: {
-                                        RegimeManager.model.ungroupRows(controlsGridLayout.selectedRows.sort())
-                                    }
-                                }
-                            }
+                            isSelected: false
                         }
                     }
                     DelegateChoice {
-                        roleValue: 0 // Not in cycle
-                        delegate: Rectangle {
-                            width: 100
+                        roleValue: 0
+                        delegate: ControlDelegate {
+                            width: 250
                             height: 40
-                            border.color: "black"
-                            border.width: 1
-                            color: controlsGridLayout.selectedRows.indexOf(index) !== -1 ? "lightblue" : "white"
-
-                            RowLayout {
-                                anchors.fill: parent
-                                CheckBox {
-                                    checked: controlsGridLayout.selectedRows.indexOf(index) !== -1
-                                    onClicked: controlsGridLayout.toggleSelection(index)
-                                }
-                                Button {
-                                    text: "Up"
-                                    enabled: RegimeManager.model.isMoveUpEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], true)
-                                }
-                                Button {
-                                    text: "Down"
-                                    enabled: RegimeManager.model.isMoveDownEnabled([index])
-                                    onClicked: controlsGridLayout.selectedRows = RegimeManager.model.moveSelection([index], false)
-                                }
-                                Button {
-                                    text: "Group"
-                                    enabled: RegimeManager.model.isSelectionGroupable(controlsGridLayout.selectedRows)
-                                    onClicked: {
-                                        RegimeManager.model.groupRows(controlsGridLayout.selectedRows.sort())
-                                    }
-                                }
-                                Button {
-                                    text: "Ungroup"
-                                    enabled: RegimeManager.model.isSelectionUngroupable(controlsGridLayout.selectedRows)
-                                    onClicked: {
-                                        RegimeManager.model.ungroupRows(controlsGridLayout.selectedRows.sort())
-                                    }
-                                }
-                            }
+                            isSelected: false
                         }
                     }
                     DelegateChoice {
                         roleValue: 2
-                        delegate: Rectangle {
-                            width: 100
-                            height: 2
+                        delegate: Item {
+                            height: 0
+                            property bool isSelected: false
                         }
                     }
                 }
@@ -267,10 +219,65 @@ ApplicationWindow {
             title: "Удалить"
             MenuItem {
                 text: "Удалить выбранные"
-                enabled: controlsGridLayout.selectedRows.length > 0
+                // enabled: controlsGridLayout.selectedRows.length > 0
                 onTriggered: {
-                    RegimeManager.model.deleteRows(controlsGridLayout.selectedRows)
-                    controlsGridLayout.selectedRows = [];
+                    let tSelectedRows = []
+                    for(let i = 0; i < repeater.count; i++){
+                        if(repeater.itemAt(i).isSelected)
+                        {
+                            tSelectedRows.push(i)
+                        }
+                    }
+                    RegimeManager.model.deleteRows(tSelectedRows)
+                    for(let i = 0; i < repeater.count; i++)
+                        repeater.itemAt(i).isSelected = false
+                }
+            }
+        }
+        Menu {
+            title: "Цикл"
+            MenuItem {
+                text: "Сгруппировать"
+                // enabled: controlsGridLayout.isSelectionGroupable
+                onTriggered: {
+                    let tSelectedRows = []
+                    for(let i = 0; i < repeater.count; i++){
+                        if(repeater.itemAt(i).isSelected)
+                        {
+                            if (repeater.itemAt(i).model.cycle_status === 1) {
+                                for (let j = 0; j < repeater.itemAt(i).model.span; j++) {
+                                    tSelectedRows.push(i + j)
+                                }
+                            } else {
+                                tSelectedRows.push(i)
+                            }
+                        }
+                    }
+                    RegimeManager.model.groupRows(tSelectedRows)
+                    for(let i = 0; i < repeater.count; i++)
+                        repeater.itemAt(i).isSelected = false
+                }
+            }
+            MenuItem {
+                text: "Разгруппировать"
+                // enabled: controlsGridLayout.isSelectionUngroupable
+                onTriggered: {
+                    let tSelectedRows = []
+                    for(let i = 0; i < repeater.count; i++){
+                        if(repeater.itemAt(i).isSelected)
+                        {
+                            if (repeater.itemAt(i).model.cycle_status === 1) {
+                                for (let j = 0; j < repeater.itemAt(i).model.span; j++) {
+                                    tSelectedRows.push(i + j)
+                                }
+                            } else {
+                                tSelectedRows.push(i)
+                            }
+                        }
+                    }
+                    RegimeManager.model.ungroupRows(tSelectedRows)
+                    for(let i = 0; i < repeater.count; i++)
+                        repeater.itemAt(i).isSelected = false
                 }
             }
         }

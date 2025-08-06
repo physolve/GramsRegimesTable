@@ -29,6 +29,7 @@ class Regime {
     Q_PROPERTY(Condition condition MEMBER m_condition)
     Q_PROPERTY(int repeatCount MEMBER m_repeatCount)
     Q_PROPERTY(int maxTime MEMBER m_maxTime)
+    Q_PROPERTY(int status MEMBER m_status)
 
 public:
     QString m_name;

@@ -1,3 +1,62 @@
+
+### TODO for Thursday, August 7, 2025
+
+1.  **Create Unit Tests for `RegimeManager`:**
+    *   Write tests for `loadDefaultRegimes`, `importRegimes`, `exportRegimes`, and `saveRegimes`.
+    *   This will likely involve creating temporary JSON files within the test suite to verify that files are read and written correctly.
+2.  **Implement Regime "State" Property:**
+    *   Add a `state` property to the `Regime` struct in C++.
+    *   Update JSON serialization/deserialization to handle the new `state` field.
+    *   Expose the `state` property to QML and add a UI control (e.g., a ComboBox) in the `TableView` delegate to allow viewing and editing it.
+3.  **Define and Implement Table Module API:**
+    *   Once the above tasks are complete, design and implement a more formal API for the table module (`RegimeManager` and `ProtoTableModel`) to improve modularity and prepare for future external interactions.
+
+### План работ на четверг, 7 августа 2025 г.
+
+1.  **Создать юнит-тесты для `RegimeManager`:**
+    *   Написать тесты для `loadDefaultRegimes`, `importRegimes`, `exportRegimes` и `saveRegimes`.
+    *   Вероятно, для этого потребуется создавать временные файлы JSON в наборе тестов для проверки правильности чтения и записи файлов.
+2.  **Реализовать свойство "state" для режимов:**
+    *   Добавить свойство `state` в структуру `Regime` в C++.
+    *   Обновить сериализацию/десериализацию JSON для обработки нового поля `state`.
+    *   Предоставить свойство `state` в QML и добавить элемент управления (например, ComboBox) в делегат `TableView` для его просмотра и редактирования.
+3.  **Спроектировать и реализовать API для модуля таблицы:**
+    *   После завершения вышеуказанных задач, спроектировать и реализовать более формальный API для модуля таблицы (`RegimeManager` и `ProtoTableModel`), чтобы улучшить модульность и подготовиться к будущим внешним взаимодействиям.
+
+## Daily Report for 2025-08-06
+
+Today's session focused on completing the refactoring of the QML delegates and implementing a robust "unsaved changes" tracking system.
+
+**1. QML Delegate Refactoring (`ControlDelegate.qml` and `Main.qml`):**
+
+*   **Centralized Control Logic**: The `controlsView` was successfully refactored by moving all the action buttons ("Up", "Down", "Delete", "Group", "Ungroup") out of the `ControlDelegate` and into `Main.qml`. This centralizes the application's logic, making it easier to manage and debug. The `ControlDelegate` is now a much simpler and more reusable component, responsible only for displaying the selection state and the `cycle_repeat` value.
+*   **Dynamic Button Visibility**: The visibility of the action buttons is now dynamically controlled by the selection state, which provides a much cleaner and more intuitive user experience.
+*   **Simplified `ControlDelegate`**: The `ControlDelegate` is now a simple component that only contains a `CheckBox` and a `SpinBox`. This makes it much easier to understand and maintain.
+
+**2. "Unsaved Changes" Tracking (`RegimeManager`):**
+
+*   **"Dirty" Flag**: A "dirty" flag was implemented in the `RegimeManager` to track whether there are unsaved changes. This is a crucial feature for any application that allows users to edit data.
+*   **Application Title Indicator**: The application title now displays an asterisk (`*`) when there are unsaved changes, which provides a clear visual cue to the user.
+*   **Confirmation Dialog**: A confirmation dialog is now displayed when the user tries to close the application or import a new file with unsaved changes. This prevents accidental data loss and is a standard feature in most data-driven applications.
+
+---
+
+## Ежедневный отчет за 2025-08-06
+
+Сегодняшняя сессия была посвящена завершению рефакторинга делегатов QML и реализации надежной системы отслеживания несохраненных изменений.
+
+**1. Рефакторинг делегатов QML (`ControlDelegate.qml` и `Main.qml`):**
+
+*   **Централизованная логика управления**: `controlsView` был успешно отрефакторен путем перемещения всех кнопок действий («Вверх», «Вниз», «Удалить», «Сгруппировать», «Разгруппировать») из `ControlDelegate` в `Main.qml`. Это централизует логику приложения, облегчая управление и отладку. `ControlDelegate` теперь является гораздо более простым и переиспользуемым компонентом, отвечающим только за отображение состояния выбора и значения `cycle_repeat`.
+*   **Динамическая видимость кнопок**: Видимость кнопок действий теперь динамически контролируется состоянием выбора, что обеспечивает более чистый и интуитивно понятный пользовательский интерфейс.
+*   **Упрощенный `ControlDelegate`**: `ControlDelegate` теперь представляет собой простой компонент, содержащий только `CheckBox` и `SpinBox`. Это значительно упрощает его понимание и обслуживание.
+
+**2. Отслеживание несохраненных изменений (`RegimeManager`):**
+
+*   **Флаг "dirty"**: В `RegimeManager` был реализован флаг «dirty» для отслеживания наличия несохраненных изменений. Это важная функция для любого приложения, позволяющего пользователям редактировать данные.
+*   **Индикатор в заголовке приложения**: В заголовке приложения теперь отображается звездочка (`*`), когда есть несохраненные изменения, что служит четким визуальным сигналом для пользователя.
+*   **Диалог подтверждения**: Теперь при попытке закрыть приложение или импортировать новый файл с несохраненными изменениями отображается диалоговое окно подтверждения. Это предотвращает случайную потерю данных и является стандартной функцией в большинстве приложений, работающих с данными.
+
 ### TODO for Wednesday, August 6, 2025
 
 1.  **Create Unit Tests for `RegimeManager`:**

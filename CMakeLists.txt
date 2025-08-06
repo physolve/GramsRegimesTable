@@ -32,7 +32,7 @@ target_link_libraries(${EXECUTABLE_NAME}
         prototablemodel
 )
 
-add_library(prototablemodel STATIC prototablemodel.cpp regime.cpp)
+add_library(prototablemodel STATIC prototablemodel.cpp regime.cpp regimemanager.cpp)
 
 target_link_libraries(prototablemodel PRIVATE Qt6::Core)
 
@@ -41,10 +41,11 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
     VERSION 1.0
     QML_FILES
         ConditionCell.qml
-        CycleCell.qml
+        ControlDelegate.qml
     SOURCES
         prototablemodel.h
         regime.h
+        regimemanager.h
     RESOURCE_PREFIX /
 )
 

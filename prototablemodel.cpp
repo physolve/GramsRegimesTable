@@ -112,6 +112,10 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
         return regime.m_cycleRepeat;
     }
 
+    if (role == StatusRole) {
+        return regime.m_status;
+    }
+
     return QVariant();
 }
 
@@ -166,6 +170,12 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
         return true;
     }
 
+    if (role == StatusRole) {
+        regime.m_status = value.toInt();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+
     return false;
 }
 
@@ -215,7 +225,8 @@ QHash<int, QByteArray> ProtoTableModel::roleNames() const
         { MaxTimeRole, "max_time" },
         { SpanRole, "span" },
         { CycleStatusRole, "cycle_status" },
-        { CycleRepeatRole, "cycle_repeat" }
+        { CycleRepeatRole, "cycle_repeat" },
+        { StatusRole, "status" }
     };
 }
 

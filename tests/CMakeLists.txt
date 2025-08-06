@@ -20,6 +20,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_executable(ProtoTableTests
     test_prototablemodel.cpp
+    test_regimemanager.cpp
 )
 
 target_link_libraries(ProtoTableTests
