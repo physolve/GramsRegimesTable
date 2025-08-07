@@ -6,15 +6,10 @@
             "time": 0,
             "type": "temp"
         },
-        "max_time": 0,
+        "max_time": 60,
         "note": "",
         "repeat": 1,
-        "cycle": null,
-        "state": {
-            "active": false,
-            "error": false,
-            "message": ""
-        }
+        "cycle": null
     },
     {
         "name": "Режим а",
@@ -29,11 +24,6 @@
         "cycle": {
             "id": 1,
             "cycleRepeat": 2
-        },
-        "state": {
-            "active": false,
-            "error": false,
-            "message": ""
         }
     },
     {
@@ -49,11 +39,6 @@
         "cycle": {
             "id": 1,
             "cycleRepeat": 2
-        },
-        "state": {
-            "active": false,
-            "error": false,
-            "message": ""
         }
     },
     {
@@ -66,11 +51,6 @@
         "max_time": 120,
         "note": "",
         "repeat": 1,
-        "cycle": null,
-        "state": {
-            "active": false,
-            "error": false,
-            "message": ""
-        }
+        "cycle": null
     }
 ]

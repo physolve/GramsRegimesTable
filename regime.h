@@ -1,8 +1,23 @@
 #pragma once
 
+#include <QObject>
 #include <QString>
 #include <QJsonObject>
 #include <QVariant>
+
+namespace RegimeEnums {
+    Q_NAMESPACE
+    enum class State {
+        Waiting,
+        Stopped,
+        Running,
+        Paused,
+        Skipped,
+        Done,
+        Error
+    };
+    Q_ENUM_NS(State)
+}
 
 struct Condition {
     Q_GADGET
@@ -29,7 +44,7 @@ class Regime {
     Q_PROPERTY(Condition condition MEMBER m_condition)
     Q_PROPERTY(int repeatCount MEMBER m_repeatCount)
     Q_PROPERTY(int maxTime MEMBER m_maxTime)
-    Q_PROPERTY(int status MEMBER m_status)
+    Q_PROPERTY(RegimeEnums::State state MEMBER m_state)
 
 public:
     QString m_name;
@@ -38,7 +53,8 @@ public:
     int m_maxTime = 0;
     int m_cycleId = -1;
     int m_cycleRepeat = 1;
-    int m_status = 0; // 0: Active, 1: Paused, 2: Skipped
+    RegimeEnums::State m_state = RegimeEnums::State::Stopped;
+    int m_timePassedInSeconds = 0;
 
     bool operator==(const Regime &other) const = default;
 
@@ -47,3 +63,4 @@ public:
 };
 
 Q_DECLARE_METATYPE(Regime)
+Q_DECLARE_METATYPE(RegimeEnums::State)

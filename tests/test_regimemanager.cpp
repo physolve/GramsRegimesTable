@@ -5,19 +5,39 @@
 #include <QTemporaryDir>
 #include <QTemporaryFile>
 
+#include <gtest/gtest.h>
+#include "regimemanager.h"
+#include <QFile>
+#include <QTextStream>
+#include <QTemporaryDir>
+#include <QTemporaryFile>
+#include <QDir>
+
 class RegimeManagerTest : public ::testing::Test {
 protected:
     void SetUp() override {
         // Create a temporary directory for test files
         ASSERT_TRUE(tempDir.isValid());
+        originalPath = QDir::currentPath();
+        QDir::setCurrent(tempDir.path());
+
+        QDir dir(tempDir.path());
+        dir.mkdir("profile");
+        QFile dummyFile(dir.filePath("profile/regime_a.json"));
+        ASSERT_TRUE(dummyFile.open(QIODevice::WriteOnly));
+        dummyFile.write("[{\"name\": \"Test Regime\", \"condition\": {\"type\": \"temp\", \"temp\": 100, \"time\": 0}, \"repeat\": {\"count\": 1}, \"max_time\": 0, \"cycle\": null}]");
+        dummyFile.close();
     }
 
     void TearDown() override {
         // The temporary directory and its contents are removed automatically
+        QDir::setCurrent(originalPath);
     }
 
     QTemporaryDir tempDir;
+    QString originalPath;
 };
+
 
 TEST_F(RegimeManagerTest, LoadDefaultRegimes) {
     RegimeManager manager;

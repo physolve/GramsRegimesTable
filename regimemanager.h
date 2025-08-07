@@ -27,9 +27,13 @@ public:
     Q_INVOKABLE void saveRegimes();
     Q_INVOKABLE void saveRegimesAs(const QUrl &filePath);
 
+public slots:
+    void onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
+
 signals:
     void currentFilePathChanged();
     void dirtyChanged();
+    void stateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
 
 private:
     ProtoTableModel m_model;

@@ -22,10 +22,11 @@ public:
         ConditionRole,
         RepeatRole,
         MaxTimeRole,
-        SpanRole,
+        CycleRowCountRole,
         CycleStatusRole,
         CycleRepeatRole,
-        StatusRole
+        StateRole,
+        TimePassedInSecondsRole
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -61,8 +62,6 @@ public slots:
     Q_INVOKABLE int getRowCount() { return m_regimes.count(); }
 
 signals:
-    void regimeButtonClicked(QVariant regime);
-    Q_INVOKABLE void updateRow(int row);
     void selectionShouldBeCleared();
 
 private:

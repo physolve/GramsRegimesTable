@@ -42,6 +42,7 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
     QML_FILES
         ConditionCell.qml
         ControlDelegate.qml
+        StateDelegate.qml
     SOURCES
         prototablemodel.h
         regime.h

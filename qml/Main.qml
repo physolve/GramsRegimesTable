@@ -69,7 +69,7 @@ ApplicationWindow {
         columnSpacing: 1
         rowSpacing: 1
         rowHeightProvider: (row) => 40
-        property var columnWidths: [80, 270, 110, 80]
+        property var columnWidths: [80, 270, 80, 85]
         columnWidthProvider: function (column) { return columnWidths[column] }
         boundsBehavior: TableView.StopAtBounds
         model: RegimeManager.model
@@ -93,7 +93,7 @@ ApplicationWindow {
                 column: 2
                 delegate: TextField {
                     id: maxTimeDelegate
-                    text: Utils.formatTime(model.max_time)
+                    text: Utils.formatTime(model.max_time*60)
                     inputMask: "99:99:99"
                     inputMethodHints: Qt.ImhTime
                     horizontalAlignment: TextInput.AlignHCenter
@@ -101,17 +101,14 @@ ApplicationWindow {
                         if (acceptableInput) {
                             model.max_time = Utils.timeToMinutes(text)
                         } else {
-                            text = Utils.formatTime(model.max_time)
+                            text = Utils.formatTime(model.max_time*60)
                         }
                     }
                 }
             }
             DelegateChoice {
                 column: 3
-                delegate: ComboBox {
-                    model: ["Активен", "Пауза", "Пропущен"]
-                    currentIndex: model.status
-                    onCurrentIndexChanged: model.status = currentIndex
+                delegate: StateDelegate {
                 }
             }
             DelegateChoice {
@@ -122,11 +119,11 @@ ApplicationWindow {
         }
     }
 
-    Item {
+    ScrollView {
         id: controlsView
-        x: 500
+        x: 560
         y: 10
-        width: 260
+        width: 400
         height: 400
         function getSelectedRows(){
             let selectedRows = []
@@ -138,10 +135,13 @@ ApplicationWindow {
             }                        
             return selectedRows
         }
-        GridLayout {
-            id: controlsGridLayout
-            columns: 1
-            rowSpacing: 1
+        contentWidth: controlsColumnLayout.implicitWidth
+        contentHeight: controlsColumnLayout.implicitHeight
+        ColumnLayout {
+            id: controlsColumnLayout
+            spacing: 1
+            Layout.preferredWidth: parent.width
+            Layout.preferredHeight: childrenRect.height
             Repeater {
                 id: repeater
                 model: RegimeManager.model
@@ -151,8 +151,8 @@ ApplicationWindow {
                         roleValue: 1
                         delegate: ControlDelegate {
                             width: 250
-                            height: 40 * model.span
-                            Layout.rowSpan: model.span
+                            height: 40 * model.cycle_row_count
+                            Layout.rowSpan: model.cycle_row_count
                             isSelected: false
                         }
                     }
@@ -245,7 +245,7 @@ ApplicationWindow {
                         if(repeater.itemAt(i).isSelected)
                         {
                             if (repeater.itemAt(i).model.cycle_status === 1) {
-                                for (let j = 0; j < repeater.itemAt(i).model.span; j++) {
+                                for (let j = 0; j < repeater.itemAt(i).model.cycle_row_count; j++) {
                                     tSelectedRows.push(i + j)
                                 }
                             } else {
@@ -267,7 +267,7 @@ ApplicationWindow {
                         if(repeater.itemAt(i).isSelected)
                         {
                             if (repeater.itemAt(i).model.cycle_status === 1) {
-                                for (let j = 0; j < repeater.itemAt(i).model.span; j++) {
+                                for (let j = 0; j < repeater.itemAt(i).model.cycle_row_count; j++) {
                                     tSelectedRows.push(i + j)
                                 }
                             } else {

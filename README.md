@@ -1,3 +1,108 @@
+### TODO for Friday, August 8, 2025
+
+1.  **QML Module API:**
+    *   Provide a QML API to return the `Regime` class object by row number (id) from `ProtoTableModel`.
+    *   Provide a signal for the Button delegate in `tableView` (column 0) so that external QML components can react to button clicks, passing the corresponding `Regime` data.
+2.  **Default Repeat Count:**
+    *   Grouping and ungrouping should set the default repeat count to 1.
+3.  **Save Changes to JSON:**
+    *   Ensure that all changes, including grouping, ungrouping, and reordering, are correctly saved back to the `regime_a.json` file.
+4.  **Synchronize Scroll Views:**
+    *   The vertical scroll position of `tableView` and `controlsView` should be synchronized.
+
+### План работ на пятницу, 8 августа 2025 г.
+
+1.  **API модуля QML:**
+    *   Предоставить API QML для возврата объекта класса `Regime` по номеру строки (id) из `ProtoTableModel`.
+    *   Предоставить сигнал для делегата `Button` в `tableView` (столбец 0), чтобы внешние компоненты QML могли реагировать на нажатия кнопок, передавая соответствующие данные `Regime`.
+2.  **Количество повторений по умолчанию:**
+    *   Группировка и разгруппировка должны устанавливать количество повторений по умолчанию равным 1.
+3.  **Сохранение изменений в JSON:**
+    *   Убедиться, что все изменения, включая группировку, разгруппировку и изменение порядка, корректно сохраняются обратно в файл `regime_a.json`.
+4.  **Синхронизация полос прокрутки:**
+    *   Положение вертикальной полосы прокрутки `tableView` и `controlsView` должно совпадать.
+
+---
+
+## Daily Report for 2025-08-07
+
+Today's session focused on implementing a "state" property for regimes, allowing for real-time updates and a more dynamic user interface.
+
+### C++ Changes:
+
+*   **`regime.h`:**
+    *   Introduced a `RegimeEnums::State` enum with the following states: `Waiting`, `Stopped`, `Running`, `Paused`, `Skipped`, `Done`, and `Error`.
+    *   Added `m_state` and `m_timePassedInSeconds` members to the `Regime` struct.
+*   **`prototablemodel.h` & `prototablemodel.cpp`:**
+    *   Added a `StateRole` and `TimePassedInSecondsRole` to the model's roles.
+    *   Updated the `data()` and `setData()` methods to handle the new roles.
+*   **`regimemanager.h` & `regimemanager.cpp`:**
+    *   Added a `stateChanged` signal and an `onStateChanged` slot to the `RegimeManager` class to allow for external state updates.
+    *   The `onStateChanged` slot now accepts the regime index, state, and time passed in seconds.
+*   **`main.cpp`:**
+    *   Registered the `RegimeEnums::State` enum with the QML type system.
+
+### QML Changes:
+
+*   **`StateDelegate.qml`:**
+    *   Created a new `StateDelegate.qml` file to display the regime state.
+    *   The delegate is a `TextField` that displays the state as text with different colors based on the current state.
+    *   The delegate now calculates and displays the time passed, time left, and total running time based on the state and the `max_time` value.
+*   **`Main.qml`:**
+    *   Added a new "State" column to the `TableView`.
+    *   The new column uses the `StateDelegate` to display the state of each regime.
+*   **`Utils.js`:**
+    *   Updated the `formatTime` function to work with seconds.
+
+### Build System Changes:
+
+*   **`CMakeLists.txt`:**
+    *   Added the new `StateDelegate.qml` file to the list of QML files.
+
+### Testing Changes:
+
+*   **`tests/test_regimemanager.cpp`:**
+    *   Updated the tests to reflect the changes in the `RegimeManager` class.
+
+## Ежедневный отчет за 2025-08-07
+
+Сегодняшняя сессия была посвящена реализации свойства «состояние» для режимов, что обеспечивает обновления в реальном времени и более динамичный пользовательский интерфейс.
+
+### Изменения в C++:
+
+*   **`regime.h`:**
+    *   Введено перечисление `RegimeEnums::State` со следующими состояниями: `Waiting`, `Stopped`, `Running`, `Paused`, `Skipped`, `Done` и `Error`.
+    *   В структуру `Regime` добавлены члены `m_state` и `m_timePassedInSeconds`.
+*   **`prototablemodel.h` и `prototablemodel.cpp`:**
+    *   В роли модели добавлены `StateRole` и `TimePassedInSecondsRole`.
+    *   Обновлены методы `data()` и `setData()` для обработки новых ролей.
+*   **`regimemanager.h` и `regimemanager.cpp`:**
+    *   В класс `RegimeManager` добавлены сигнал `stateChanged` и слот `onStateChanged` для обеспечения возможности обновления состояния извне.
+    *   Слот `onStateChanged` теперь принимает индекс режима, состояние и прошедшее время в секундах.
+*   **`main.cpp`:**
+    *   Зарегистрировано перечисление `RegimeEnums::State` в системе типов QML.
+
+### Изменения в QML:
+
+*   **`StateDelegate.qml`:**
+    *   Создан новый файл `StateDelegate.qml` для отображения состояния режима.
+    *   Делегат представляет собой `TextField`, который отображает состояние в виде текста с разными цветами в зависимости от текущего состояния.
+    *   Делегат теперь вычисляет и отображает прошедшее время, оставшееся время и общее время работы в зависимости от состояния и значения `max_time`.
+*   **`Main.qml`:**
+    *   В `TableView` добавлена новая колонка «Состояние».
+    *   Новая колонка использует `StateDelegate` для отображения состояния каждого режима.
+*   **`Utils.js`:**
+    *   Обновлена функция `formatTime` для работы с секундами.
+
+### Изменения в системе сборки:
+
+*   **`CMakeLists.txt`:**
+    *   Новый файл `StateDelegate.qml` добавлен в список файлов QML.
+
+### Изменения в тестировании:
+
+*   **`tests/test_regimemanager.cpp`:**
+    *   Обновлены тесты для отражения изменений в классе `RegimeManager`.
 
 ### TODO for Thursday, August 7, 2025
 

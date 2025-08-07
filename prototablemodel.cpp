@@ -18,7 +18,7 @@ void ProtoTableModel::updateCycleIds()
 ProtoTableModel::ProtoTableModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
-    m_columnNames << "Режим" << "Условие" << "Макс. время";
+    m_columnNames << "Режим" << "Условие" << "Макс. время" << "Состояние";
 }
 
 int ProtoTableModel::rowCount(const QModelIndex &parent) const
@@ -49,6 +49,7 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
         case 0: return regime.m_name;
         case 1: return QVariant::fromValue(regime.m_condition);
         case 2: return regime.m_maxTime;
+        case 3: return QVariant::fromValue(regime.m_state);
         default: return QVariant();
         }
     }
@@ -72,7 +73,7 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
         return QVariant::fromValue(regime);
     }
 
-    if (role == SpanRole) {
+    if (role == CycleRowCountRole) {
         if (regime.m_cycleId == -1) {
             return 1;
         }
@@ -112,8 +113,12 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
         return regime.m_cycleRepeat;
     }
 
-    if (role == StatusRole) {
-        return regime.m_status;
+    if (role == StateRole) {
+        return QVariant::fromValue(regime.m_state);
+    }
+
+    if (role == TimePassedInSecondsRole) {
+        return regime.m_timePassedInSeconds;
     }
 
     return QVariant();
@@ -170,8 +175,14 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
         return true;
     }
 
-    if (role == StatusRole) {
-        regime.m_status = value.toInt();
+    if (role == StateRole) {
+        regime.m_state = value.value<RegimeEnums::State>();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+
+    if (role == TimePassedInSecondsRole) {
+        regime.m_timePassedInSeconds = value.toInt();
         emit dataChanged(index, index, {role});
         return true;
     }
@@ -223,10 +234,11 @@ QHash<int, QByteArray> ProtoTableModel::roleNames() const
         { ConditionRole, "condition" },
         { RepeatRole, "repeat" },
         { MaxTimeRole, "max_time" },
-        { SpanRole, "span" },
+        { CycleRowCountRole, "cycle_row_count" },
         { CycleStatusRole, "cycle_status" },
         { CycleRepeatRole, "cycle_repeat" },
-        { StatusRole, "status" }
+        { StateRole, "state" },
+        { TimePassedInSecondsRole, "time_passed_in_seconds" }
     };
 }
 
@@ -273,7 +285,7 @@ void ProtoTableModel::groupRows(QVariantList rows)
     }
 
     updateCycleIds();
-    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, SpanRole});
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     emit selectionShouldBeCleared();
 }
 
@@ -306,7 +318,7 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
     }
 
     updateCycleIds();
-    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {SpanRole, RepeatRole, CycleRepeatRole, CycleStatusRole});
+    emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleRowCountRole, RepeatRole, CycleRepeatRole, CycleStatusRole});
     emit selectionShouldBeCleared();
 }
 
@@ -354,7 +366,7 @@ void ProtoTableModel::addRow(const QString &regimeName)
     m_regimes.append(newRegime);
     endInsertRows();
     if (rowCount() > 1) {
-        emit dataChanged(index(0, 0), index(rowCount() - 2, columnCount() - 1), {CycleStatusRole, SpanRole});
+        emit dataChanged(index(0, 0), index(rowCount() - 2, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     }
 }
 
@@ -403,7 +415,7 @@ void ProtoTableModel::deleteRows(QVariantList rows)
 
     updateCycleIds();
     if (rowCount() > 0) {
-        emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, SpanRole});
+        emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     }
 }
 

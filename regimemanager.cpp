@@ -10,6 +10,7 @@ RegimeManager::RegimeManager(QObject *parent)
 {
     loadDefaultRegimes();
     connect(&m_model, &ProtoTableModel::dataChanged, this, [this]() { setDirty(true); });
+    onStateChanged(0, RegimeEnums::State::Running, 120);
 }
 
 ProtoTableModel* RegimeManager::model()
@@ -115,4 +116,13 @@ void RegimeManager::saveRegimesToFile(const QList<Regime> &regimes, const QStrin
     QJsonDocument doc(regimesArray);
     file.write(doc.toJson());
     file.close();
+}
+
+void RegimeManager::onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds)
+{
+    if (regimeIndex < 0 || regimeIndex >= m_model.rowCount())
+        return;
+
+    m_model.setData(m_model.index(regimeIndex, 0), QVariant::fromValue(state), ProtoTableModel::StateRole);
+    m_model.setData(m_model.index(regimeIndex, 0), timePassedInSeconds, ProtoTableModel::TimePassedInSecondsRole);
 }
