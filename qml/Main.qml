@@ -9,7 +9,7 @@ import QtQuick.Dialogs
 
 ApplicationWindow {
     width: 960
-    height: 480
+    height: 560
     visible: true
     title: qsTr("ProtoTable App") + (RegimeManager.dirty ? " *" : "")
 
@@ -80,8 +80,10 @@ ApplicationWindow {
         delegate: DelegateChooser {
             DelegateChoice {
                 column: 0
-                delegate: Button {
-                    text: model.regime.name
+                delegate: RegimeDelegate {
+                    onRegimeClicked: (regime) => {
+                        console.log("Regime clicked:", regime.name)
+                    }
                 }
             }
             DelegateChoice {
@@ -93,15 +95,15 @@ ApplicationWindow {
                 column: 2
                 delegate: TextField {
                     id: maxTimeDelegate
-                    text: Utils.formatTime(model.max_time*60)
+                    text: Utils.formatTime(model.max_time)
                     inputMask: "99:99:99"
                     inputMethodHints: Qt.ImhTime
                     horizontalAlignment: TextInput.AlignHCenter
                     onEditingFinished: {
                         if (acceptableInput) {
-                            model.max_time = Utils.timeToMinutes(text)
+                            model.max_time = Utils.timeToSeconds(text)
                         } else {
-                            text = Utils.formatTime(model.max_time*60)
+                            text = Utils.formatTime(model.max_time)
                         }
                     }
                 }
@@ -176,10 +178,19 @@ ApplicationWindow {
         }
     }
 
+    TimeProgressBar {
+        id: timeProgressBar
+        x: 10
+        y: 410
+        width: 820
+        height: 60
+        model: RegimeManager.model
+    }
+
     MenuBar {
         id: menuBar
         x: 10
-        y: 410
+        y: 500
         Menu {
             title: "Файл"
             MenuItem {

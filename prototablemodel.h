@@ -21,12 +21,18 @@ public:
         RegimeRole = Qt::UserRole + 1,
         ConditionRole,
         RepeatRole,
+        // Maximum time for the regime in minutes
         MaxTimeRole,
         CycleRowCountRole,
         CycleStatusRole,
         CycleRepeatRole,
         StateRole,
-        TimePassedInSecondsRole
+        // Time passed in seconds
+        TimePassedInSecondsRole,
+        RepeatsDoneRole,
+        RepeatsSkippedRole,
+        RepeatsErrorRole,
+        CycleIdRole
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -56,7 +62,9 @@ public:
     Q_INVOKABLE bool isMoveUpEnabled(QVariantList rows) const;
     Q_INVOKABLE bool isMoveDownEnabled(QVariantList rows) const;
 
+    Q_INVOKABLE Regime getRegime(int row) const;
     Q_INVOKABLE QVariant get(int row, const QByteArray& roleName) const;
+    Q_INVOKABLE bool isAnyRegimeRunning() const;
 
 public slots:
     Q_INVOKABLE int getRowCount() { return m_regimes.count(); }
@@ -66,9 +74,11 @@ signals:
 
 private:
     void updateCycleIds();
+    void checkAndUpdateRunningState();
     int getBlockStart(QVariantList rows) const;
     int getBlockEnd(QVariantList rows) const;
 
     QList<Regime> m_regimes;
     QStringList m_columnNames;
+    bool m_isAnyRegimeRunning = false;
 };

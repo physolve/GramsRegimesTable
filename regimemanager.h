@@ -27,6 +27,31 @@ public:
     Q_INVOKABLE void saveRegimes();
     Q_INVOKABLE void saveRegimesAs(const QUrl &filePath);
 
+    Q_INVOKABLE void setRegimeState(int regimeId, RegimeEnums::State state);
+    Q_INVOKABLE int getRepeatsDone(int regimeId) const;
+    Q_INVOKABLE int getRepeatsSkipped(int regimeId) const;
+    Q_INVOKABLE int getRepeatsError(int regimeId) const;
+    Q_INVOKABLE int getRepeatsLeft(int regimeId) const;
+    // Returns the time left for a specific regime in seconds.
+    Q_INVOKABLE int getTimeLeftForRegime(int regimeId) const;
+    // Returns the time left for a specific cycle in seconds.
+    Q_INVOKABLE int getTimeLeftForCycle(int regimeId) const;
+    // Returns the total estimated time left for all regimes in seconds.
+    Q_INVOKABLE int getEstimatedTimeLeft() const;
+
+    // Returns the total time for a specific regime in seconds.
+    Q_INVOKABLE int getTotalTimeForRegime(int regimeId) const;
+    // Returns the elapsed time for a specific regime in seconds.
+    Q_INVOKABLE int getElapsedTimeForRegime(int regimeId) const;
+    // Returns the total time for a specific cycle in seconds.
+    Q_INVOKABLE int getTotalTimeForCycle(int regimeId) const;
+    // Returns the elapsed time for a specific cycle in seconds.
+    Q_INVOKABLE int getElapsedTimeForCycle(int regimeId) const;
+    // Returns the total estimated time for all regimes in seconds.
+    Q_INVOKABLE int getTotalEstimatedTime() const;
+    // Returns the total elapsed time for all regimes in seconds.
+    Q_INVOKABLE int getTotalElapsedTime() const;
+
 public slots:
     void onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
 

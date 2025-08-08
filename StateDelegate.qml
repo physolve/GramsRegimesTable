@@ -43,14 +43,14 @@ TextField {
                     return "#C8E6C9"; // Pastel Green
                 case RegimeState.Paused:
                     return "#BBDEFB"; // Pastel Blue
+                case RegimeState.Stopped:
                 case RegimeState.Error:
                     return "#FFCDD2"; // Pastel Red
                 case RegimeState.Skipped:
                 case RegimeState.Done:
-                    return "white";
-                case RegimeState.Stopped:
+                    return '#fffecd';
                 default:
-                    return "transparent";
+                    return "white";
             }
         }
     }

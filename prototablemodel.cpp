@@ -121,6 +121,22 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
         return regime.m_timePassedInSeconds;
     }
 
+    if (role == RepeatsDoneRole) {
+        return regime.m_repeatsDone;
+    }
+
+    if (role == RepeatsSkippedRole) {
+        return regime.m_repeatsSkipped;
+    }
+
+    if (role == RepeatsErrorRole) {
+        return regime.m_repeatsError;
+    }
+
+    if (role == CycleIdRole) {
+        return regime.m_cycleId;
+    }
+
     return QVariant();
 }
 
@@ -178,11 +194,30 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
     if (role == StateRole) {
         regime.m_state = value.value<RegimeEnums::State>();
         emit dataChanged(index, index, {role});
+        checkAndUpdateRunningState();
         return true;
     }
 
     if (role == TimePassedInSecondsRole) {
         regime.m_timePassedInSeconds = value.toInt();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+
+    if (role == RepeatsDoneRole) {
+        regime.m_repeatsDone = value.toInt();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+
+    if (role == RepeatsSkippedRole) {
+        regime.m_repeatsSkipped = value.toInt();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+
+    if (role == RepeatsErrorRole) {
+        regime.m_repeatsError = value.toInt();
         emit dataChanged(index, index, {role});
         return true;
     }
@@ -252,6 +287,7 @@ void ProtoTableModel::setRegimes(const QList<Regime> &regimes)
     beginResetModel();
     m_regimes = regimes;
     endResetModel();
+    checkAndUpdateRunningState();
 }
 
 QList<Regime> ProtoTableModel::getRegimes() const
@@ -279,6 +315,7 @@ void ProtoTableModel::groupRows(QVariantList rows)
         int row = rowVariant.toInt();
         if (row >= 0 && row < m_regimes.count()) {
             m_regimes[row].m_cycleId = newCycleId;
+            m_regimes[row].m_cycleRepeat = 1;
         } else {
             qWarning() << "groupRows: Invalid row index" << row;
         }
@@ -314,6 +351,7 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
     for (int i = 0; i < m_regimes.count(); ++i) {
         if (cyclesToUngroup.contains(m_regimes[i].m_cycleId)) {
             m_regimes[i].m_cycleId = -1;
+            m_regimes[i].m_repeatCount = 1;
         }
     }
 
@@ -368,6 +406,7 @@ void ProtoTableModel::addRow(const QString &regimeName)
     if (rowCount() > 1) {
         emit dataChanged(index(0, 0), index(rowCount() - 2, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     }
+    checkAndUpdateRunningState();
 }
 
 void ProtoTableModel::deleteRows(QVariantList rows)
@@ -379,6 +418,8 @@ void ProtoTableModel::deleteRows(QVariantList rows)
         bool ok;
         int rowIndex = row.toInt(&ok);
         if (!ok || rowIndex < 0 || rowIndex >= m_regimes.count()) continue;
+
+        if (m_regimes[rowIndex].m_state != RegimeEnums::State::Waiting) continue;
 
         if (m_regimes[rowIndex].m_cycleId != -1) {
             int cycleId = m_regimes[rowIndex].m_cycleId;
@@ -417,6 +458,7 @@ void ProtoTableModel::deleteRows(QVariantList rows)
     if (rowCount() > 0) {
         emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     }
+    checkAndUpdateRunningState();
 }
 
 void ProtoTableModel::clear()
@@ -424,11 +466,18 @@ void ProtoTableModel::clear()
     beginResetModel();
     m_regimes.clear();
     endResetModel();
+    checkAndUpdateRunningState();
 }
 
 bool ProtoTableModel::isSelectionGroupable(QVariantList rows) const
 {
     if (rows.count() < 2) return false;
+
+    for (const QVariant &row : rows) {
+        int rowIndex = row.toInt();
+        if (rowIndex < 0 || rowIndex >= m_regimes.count()) return false;
+        if (m_regimes[rowIndex].m_state != RegimeEnums::State::Waiting) return false;
+    }
 
     int cycleCount = 0;
     int nonCycleCount = 0;
@@ -453,6 +502,12 @@ bool ProtoTableModel::isSelectionUngroupable(QVariantList rows) const
 
     for (const QVariant &row : rows) {
         int rowIndex = row.toInt();
+        if (rowIndex < 0 || rowIndex >= m_regimes.count()) return false;
+        if (m_regimes[rowIndex].m_state != RegimeEnums::State::Waiting) return false;
+    }
+
+    for (const QVariant &row : rows) {
+        int rowIndex = row.toInt();
         if (rowIndex >= 0 && rowIndex < m_regimes.count()) {
             if (m_regimes[rowIndex].m_cycleId != -1) {
                 return true;
@@ -467,14 +522,45 @@ bool ProtoTableModel::isMoveUpEnabled(QVariantList rows) const
 {
     if (rows.isEmpty()) return false;
     int blockStart = getBlockStart(rows);
-    return blockStart > 0;
+    if (blockStart == 0) return false;
+
+    for (const QVariant &row : rows) {
+        int rowIndex = row.toInt();
+        if (rowIndex < 0 || rowIndex >= m_regimes.count()) return false;
+        if (m_regimes[rowIndex].m_state != RegimeEnums::State::Waiting) return false;
+    }
+
+    int lastNonWaiting = -1;
+    for (int i = 0; i < m_regimes.count(); ++i) {
+        if (m_regimes[i].m_state != RegimeEnums::State::Waiting) {
+            lastNonWaiting = i;
+        }
+    }
+
+    return blockStart > lastNonWaiting + 1;
 }
 
 bool ProtoTableModel::isMoveDownEnabled(QVariantList rows) const
 {
     if (rows.isEmpty()) return false;
     int blockEnd = getBlockEnd(rows);
-    return blockEnd != -1 && blockEnd < m_regimes.count() - 1;
+    if (blockEnd == -1 || blockEnd == m_regimes.count() - 1) return false;
+
+    for (const QVariant &row : rows) {
+        int rowIndex = row.toInt();
+        if (rowIndex < 0 || rowIndex >= m_regimes.count()) return false;
+        if (m_regimes[rowIndex].m_state != RegimeEnums::State::Waiting) return false;
+    }
+
+    return true;
+}
+
+Regime ProtoTableModel::getRegime(int row) const
+{
+    if (row < 0 || row >= m_regimes.count()) {
+        return Regime();
+    }
+    return m_regimes.at(row);
 }
 
 QVariant ProtoTableModel::get(int row, const QByteArray& roleName) const
@@ -484,6 +570,28 @@ QVariant ProtoTableModel::get(int row, const QByteArray& roleName) const
         return QVariant();
     }
     return data(index(row, 0), role);
+}
+
+bool ProtoTableModel::isAnyRegimeRunning() const
+{
+    return m_isAnyRegimeRunning;
+}
+
+void ProtoTableModel::checkAndUpdateRunningState()
+{
+    bool running = false;
+    for (const auto &regime : m_regimes) {
+        if (regime.m_state != RegimeEnums::State::Waiting &&
+            regime.m_state != RegimeEnums::State::Skipped &&
+            regime.m_state != RegimeEnums::State::Done) {
+            running = true;
+            break;
+        }
+    }
+
+    if (m_isAnyRegimeRunning != running) {
+        m_isAnyRegimeRunning = running;
+    }
 }
 
 int ProtoTableModel::getBlockStart(QVariantList rows) const

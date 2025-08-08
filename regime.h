@@ -28,6 +28,7 @@ struct Condition {
 public:
     QString type;
     double temp = 0.0;
+    // Time in minutes
     int time = 0;
 
     bool operator==(const Condition &other) const = default;
@@ -50,11 +51,16 @@ public:
     QString m_name;
     Condition m_condition;
     int m_repeatCount = 0;
+    // Maximum time for the regime in seconds
     int m_maxTime = 0;
     int m_cycleId = -1;
     int m_cycleRepeat = 1;
-    RegimeEnums::State m_state = RegimeEnums::State::Stopped;
+    RegimeEnums::State m_state = RegimeEnums::State::Waiting;
+    // Time passed in seconds
     int m_timePassedInSeconds = 0;
+    int m_repeatsDone = 0;
+    int m_repeatsSkipped = 0;
+    int m_repeatsError = 0;
 
     bool operator==(const Regime &other) const = default;
 
