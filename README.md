@@ -1,10 +1,31 @@
+## Daily Report for 2025-08-08
+
+Today's Report (2025-08-08):
+
+*   **Core Logic & Model Enhancements**:
+    *   Introduced new data roles and properties in `ProtoTableModel` and `Regime` for tracking regime state, repeat counts (done, skipped, error), and cycle IDs.
+    *   Implemented comprehensive state management and time calculation logic within `RegimeManager`, including functions for repeats left, time left for regimes/cycles, and total estimated/elapsed times.
+    *   Refined grouping/ungrouping behavior to correctly set repeat counts.
+    *   Added state-based checks to model operations (delete, group, ungroup, move) to prevent actions on active regimes.
+*   **QML UI Updates**:
+    *   Integrated `RegimeDelegate` and `TimeProgressBar` components into `Main.qml`.
+    *   Adjusted time input handling in `Main.qml` to use seconds instead of minutes, supported by a new `timeToSeconds` utility function.
+    *   Updated `StateDelegate.qml` with new color schemes for different regime states.
+*   **Build & Configuration**:
+    *   Updated `CMakeLists.txt` to include new QML files and a new test file (`test_time_calculations.cpp`).
+    *   Modified `regime.cpp` to store repeat counts directly as integers and convert `max_time` to seconds upon loading.
+*   **Documentation**:
+    *   Updated `README.md` to reflect changes in default repeat count behavior.
+
+---
+
 ### TODO for Friday, August 8, 2025
 
 1.  **QML Module API:**
     *   Provide a QML API to return the `Regime` class object by row number (id) from `ProtoTableModel`.
     *   Provide a signal for the Button delegate in `tableView` (column 0) so that external QML components can react to button clicks, passing the corresponding `Regime` data.
 2.  **Default Repeat Count:**
-    *   Grouping and ungrouping should set the default repeat count to 1.
+    *   Grouping and ungrouping should set the default cycle repeat count and regime repeat count to 1.
 3.  **Save Changes to JSON:**
     *   Ensure that all changes, including grouping, ungrouping, and reordering, are correctly saved back to the `regime_a.json` file.
 4.  **Synchronize Scroll Views:**
