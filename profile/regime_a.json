@@ -18,7 +18,7 @@
             "time": 120,
             "type": "time"
         },
-        "max_time": 0,
+        "max_time": 10,
         "note": "",
         "repeat": 1,
         "cycle": {
@@ -32,7 +32,7 @@
             "time": 120,
             "type": "time"
         },
-        "max_time": 0,
+        "max_time": 10,
         "name": "Режим б",
         "note": "",
         "repeat": 1,

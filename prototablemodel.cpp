@@ -160,6 +160,7 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
             regime.m_repeatCount = value.toInt();
             emit dataChanged(index, index, {RepeatRole});
         }
+        emit totalTimeChanged();
         return true;
     }
 
@@ -176,6 +177,7 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
     if (role == MaxTimeRole) {
         regime.m_maxTime = value.toDouble();
         emit dataChanged(index, index, {role, Qt::DisplayRole});
+        emit totalTimeChanged();
         return true;
     }
 
@@ -258,6 +260,7 @@ bool ProtoTableModel::moveRows(const QModelIndex &sourceParent, int sourceRow, i
     endMoveRows();
     updateCycleIds();
     emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1));
+    emit totalTimeChanged();
     return true;
 }
 
@@ -324,6 +327,7 @@ void ProtoTableModel::groupRows(QVariantList rows)
     updateCycleIds();
     emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     emit selectionShouldBeCleared();
+    emit totalTimeChanged();
 }
 
 void ProtoTableModel::ungroupRows(QVariantList rows)
@@ -358,6 +362,7 @@ void ProtoTableModel::ungroupRows(QVariantList rows)
     updateCycleIds();
     emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleRowCountRole, RepeatRole, CycleRepeatRole, CycleStatusRole});
     emit selectionShouldBeCleared();
+    emit totalTimeChanged();
 }
 
 QVariantList ProtoTableModel::moveSelection(QVariantList rows, bool up)
@@ -407,6 +412,7 @@ void ProtoTableModel::addRow(const QString &regimeName)
         emit dataChanged(index(0, 0), index(rowCount() - 2, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     }
     checkAndUpdateRunningState();
+    emit totalTimeChanged();
 }
 
 void ProtoTableModel::deleteRows(QVariantList rows)
@@ -459,6 +465,7 @@ void ProtoTableModel::deleteRows(QVariantList rows)
         emit dataChanged(index(0, 0), index(m_regimes.count() - 1, columnCount() - 1), {CycleStatusRole, CycleRowCountRole});
     }
     checkAndUpdateRunningState();
+    emit totalTimeChanged();
 }
 
 void ProtoTableModel::clear()
@@ -561,6 +568,27 @@ Regime ProtoTableModel::getRegime(int row) const
         return Regime();
     }
     return m_regimes.at(row);
+}
+
+QVariantMap ProtoTableModel::getRegimeAsVariantMap(int row) const
+{
+    if (row < 0 || row >= m_regimes.count()) {
+        return QVariantMap();
+    }
+    const Regime &regime = m_regimes.at(row);
+    QVariantMap map;
+    map.insert("name", regime.m_name);
+    map.insert("condition", QVariant::fromValue(regime.m_condition));
+    map.insert("repeatCount", regime.m_repeatCount);
+    map.insert("maxTime", regime.m_maxTime);
+    map.insert("state", QVariant::fromValue(regime.m_state));
+    map.insert("timePassedInSeconds", regime.m_timePassedInSeconds);
+    map.insert("repeatsDone", regime.m_repeatsDone);
+    map.insert("repeatsSkipped", regime.m_repeatsSkipped);
+    map.insert("repeatsError", regime.m_repeatsError);
+    map.insert("cycleId", regime.m_cycleId);
+    map.insert("cycleRepeat", regime.m_cycleRepeat);
+    return map;
 }
 
 QVariant ProtoTableModel::get(int row, const QByteArray& roleName) const

@@ -4,6 +4,7 @@
 #include "prototablemodel.h"
 #include "regime.h"
 #include "regimemanager.h"
+#include "visibleregimemodel.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,6 +12,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<Condition>();
     qmlRegisterUncreatableMetaObject(RegimeEnums::staticMetaObject, "com.grams.prototable", 1, 0, "RegimeState", "Error: only enums");
+    qmlRegisterType<VisibleRegimeModel>("com.grams.prototable", 1, 0, "VisibleRegimeModel");
 
     QQmlApplicationEngine engine;
     RegimeManager regimeManager;

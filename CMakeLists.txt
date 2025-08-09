@@ -32,7 +32,7 @@ target_link_libraries(${EXECUTABLE_NAME}
         prototablemodel
 )
 
-add_library(prototablemodel STATIC prototablemodel.cpp regime.cpp regimemanager.cpp)
+add_library(prototablemodel STATIC prototablemodel.cpp regime.cpp regimemanager.cpp visibleregimemodel.cpp)
 
 target_link_libraries(prototablemodel PRIVATE Qt6::Core)
 
@@ -49,6 +49,7 @@ qt6_add_qml_module(${EXECUTABLE_NAME}
         prototablemodel.h
         regime.h
         regimemanager.h
+        visibleregimemodel.h
     RESOURCE_PREFIX /
 )
 

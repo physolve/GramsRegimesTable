@@ -63,6 +63,7 @@ public:
     Q_INVOKABLE bool isMoveDownEnabled(QVariantList rows) const;
 
     Q_INVOKABLE Regime getRegime(int row) const;
+        Q_INVOKABLE QVariantMap getRegimeAsVariantMap(int row) const;
     Q_INVOKABLE QVariant get(int row, const QByteArray& roleName) const;
     Q_INVOKABLE bool isAnyRegimeRunning() const;
 
@@ -71,6 +72,7 @@ public slots:
 
 signals:
     void selectionShouldBeCleared();
+    void totalTimeChanged();
 
 private:
     void updateCycleIds();

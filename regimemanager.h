@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QUrl>
 #include "prototablemodel.h"
+#include "visibleregimemodel.h"
 
 class RegimeManager : public QObject
 {
@@ -10,6 +11,7 @@ class RegimeManager : public QObject
     Q_PROPERTY(ProtoTableModel* model READ model CONSTANT)
     Q_PROPERTY(QUrl currentFilePath READ currentFilePath WRITE setCurrentFilePath NOTIFY currentFilePathChanged)
     Q_PROPERTY(bool dirty READ dirty WRITE setDirty NOTIFY dirtyChanged)
+    Q_PROPERTY(VisibleRegimeModel* visibleRegimeModel READ visibleRegimeModel CONSTANT)
 
 public:
     explicit RegimeManager(QObject *parent = nullptr);
@@ -25,7 +27,9 @@ public:
     Q_INVOKABLE void importRegimes(const QUrl &filePath);
     Q_INVOKABLE void exportRegimes(const QUrl &filePath);
     Q_INVOKABLE void saveRegimes();
-    Q_INVOKABLE void saveRegimesAs(const QUrl &filePath);
+    void saveRegimesAs(const QUrl &filePath);
+
+    VisibleRegimeModel* visibleRegimeModel();
 
     Q_INVOKABLE void setRegimeState(int regimeId, RegimeEnums::State state);
     Q_INVOKABLE int getRepeatsDone(int regimeId) const;
@@ -52,6 +56,9 @@ public:
     // Returns the total elapsed time for all regimes in seconds.
     Q_INVOKABLE int getTotalElapsedTime() const;
 
+    Q_INVOKABLE void updateTotalTime();
+    Q_INVOKABLE void updateVisibleRegimes(int visibleStartTime, int visibleEndTime);
+
 public slots:
     void onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
 
@@ -59,9 +66,11 @@ signals:
     void currentFilePathChanged();
     void dirtyChanged();
     void stateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
+    void totalTimeChanged();
 
 private:
     ProtoTableModel m_model;
+    VisibleRegimeModel m_visibleRegimeModel;
     QUrl m_currentFilePath;
     bool m_dirty = false;
     QList<Regime> loadRegimesFromFile(const QString &filePath);

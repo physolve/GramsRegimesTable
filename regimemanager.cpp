@@ -11,6 +11,7 @@ RegimeManager::RegimeManager(QObject *parent)
 {
     loadDefaultRegimes();
     connect(&m_model, &ProtoTableModel::dataChanged, this, [this]() { setDirty(true); });
+    connect(&m_model, &ProtoTableModel::totalTimeChanged, this, &RegimeManager::totalTimeChanged);
     onStateChanged(0, RegimeEnums::State::Running, 540);
 }
 
@@ -52,6 +53,7 @@ void RegimeManager::importRegimes(const QUrl &filePath)
     m_model.setRegimes(regimes);
     setCurrentFilePath(filePath);
     setDirty(false);
+    emit totalTimeChanged();
 }
 
 void RegimeManager::exportRegimes(const QUrl &filePath)
@@ -80,6 +82,7 @@ void RegimeManager::loadDefaultRegimes()
     m_model.setRegimes(regimes);
     setCurrentFilePath(QUrl::fromLocalFile(defaultFilePath));
     setDirty(false);
+    emit totalTimeChanged();
 }
 
 QList<Regime> RegimeManager::loadRegimesFromFile(const QString &filePath)
@@ -119,6 +122,35 @@ void RegimeManager::saveRegimesToFile(const QList<Regime> &regimes, const QStrin
     file.close();
 }
 
+void RegimeManager::updateTotalTime()
+{
+    emit totalTimeChanged();
+}
+
+VisibleRegimeModel* RegimeManager::visibleRegimeModel()
+{
+    return &m_visibleRegimeModel;
+}
+
+void RegimeManager::updateVisibleRegimes(int visibleStartTime, int visibleEndTime)
+{
+    qDebug() << "updateVisibleRegimes" << visibleStartTime << visibleEndTime;
+    QList<Regime> visibleRegimes;
+    int startTime = 0;
+    for (int i = 0; i < m_model.rowCount(); ++i)
+    {
+        Regime regime = m_model.getRegime(i);
+        int endTime = startTime + regime.m_maxTime * regime.m_repeatCount;
+        if (endTime >= visibleStartTime && startTime <= visibleEndTime)
+        {
+            visibleRegimes.append(regime);
+        }
+        startTime = endTime;
+    }
+    qDebug() << "visibleRegimes" << visibleRegimes.count();
+    m_visibleRegimeModel.setRegimes(visibleRegimes);
+}
+
 void RegimeManager::onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds)
 {
     if (regimeIndex < 0 || regimeIndex >= m_model.rowCount())
@@ -126,6 +158,7 @@ void RegimeManager::onStateChanged(int regimeIndex, RegimeEnums::State state, in
 
     m_model.setData(m_model.index(regimeIndex, 0), QVariant::fromValue(state), ProtoTableModel::StateRole);
     m_model.setData(m_model.index(regimeIndex, 0), timePassedInSeconds, ProtoTableModel::TimePassedInSecondsRole);
+    emit totalTimeChanged();
 }
 
 void RegimeManager::setRegimeState(int regimeId, RegimeEnums::State state)
@@ -154,6 +187,7 @@ void RegimeManager::setRegimeState(int regimeId, RegimeEnums::State state)
         int repeatsError = m_model.data(m_model.index(regimeId, 0), ProtoTableModel::RepeatsErrorRole).toInt();
         m_model.setData(m_model.index(regimeId, 0), repeatsError + 1, ProtoTableModel::RepeatsErrorRole);
     }
+    emit totalTimeChanged();
 }
 
 int RegimeManager::getRepeatsDone(int regimeId) const

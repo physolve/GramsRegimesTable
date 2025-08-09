@@ -1,3 +1,30 @@
+### TODO for Saturday, August 9, 2025
+
+1.  **DONE: TimeProgressBar synchronization**:
+    *   Synchronize `TimeProgressBar` with `regimemanager` and `prototablemodel` updates.
+2.  **DONE: Regime description in TimeProgressBar**:
+    *   Write Regime description inside regime rectangle in `TimeProgressBar`.
+    
+## Ежедневный отчет за 2025-08-09
+
+Сегодняшний отчет (2025-08-09):
+
+*   **Улучшения TimeProgressBar**:
+    *   `TimeProgressBar` теперь синхронизирован с `ProtoTableModel`, что обеспечивает его автоматическое обновление при изменении данных модели.
+    *   Название режима теперь отображается внутри соответствующего прямоугольника в `TimeProgressBar`, что улучшает наглядность.
+
+---
+
+## Daily Report for 2025-08-09
+
+Today's Report (2025-08-09):
+
+*   **TimeProgressBar Enhancements**:
+    *   The `TimeProgressBar` is now synchronized with the `ProtoTableModel`, ensuring that it automatically updates whenever the model's data changes.
+    *   The regime name is now displayed inside its corresponding rectangle in the `TimeProgressBar`, improving clarity.
+
+---
+
 ## Daily Report for 2025-08-08
 
 Today's Report (2025-08-08):
