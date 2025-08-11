@@ -23,6 +23,12 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     void setRegimes(const QList<Regime> &regimes);
+    
+    // Function to be called by ProtoTableModel when total time changes
+    Q_INVOKABLE void notifyTimelineUpdate();
+
+signals:
+    void timelineUpdateRequired();
 
 private:
     QList<Regime> m_regimes;

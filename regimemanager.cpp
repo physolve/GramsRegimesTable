@@ -11,7 +11,11 @@ RegimeManager::RegimeManager(QObject *parent)
 {
     loadDefaultRegimes();
     connect(&m_model, &ProtoTableModel::dataChanged, this, [this]() { setDirty(true); });
-    connect(&m_model, &ProtoTableModel::totalTimeChanged, this, &RegimeManager::totalTimeChanged);
+    // Connect ProtoTableModel totalTimeChanged to VisibleRegimeModel update function
+    connect(&m_model, &ProtoTableModel::totalTimeChanged, &m_visibleRegimeModel, &VisibleRegimeModel::notifyTimelineUpdate);
+    // Forward VisibleRegimeModel signal to RegimeManager signal for backward compatibility
+    connect(&m_visibleRegimeModel, &VisibleRegimeModel::timelineUpdateRequired, this, &RegimeManager::totalTimeChanged);
+
     onStateChanged(0, RegimeEnums::State::Running, 540);
 }
 
@@ -330,7 +334,7 @@ int RegimeManager::getTotalEstimatedTime() const
 
     for (int i = 0; i < m_model.rowCount(); ++i)
     {
-        Regime regime = m_model.data(m_model.index(i, 0), ProtoTableModel::RegimeRole).value<Regime>();
+        Regime regime = m_model.data(m_model.index(i, 0), ProtoTableModel::RegimeRole).value<Regime>(); // to const auto& ?
         if (regime.m_cycleId != -1) {
             if (!processedCycleIds.contains(regime.m_cycleId)) {
                 totalTime += getTotalTimeForCycle(i);

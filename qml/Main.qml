@@ -9,7 +9,7 @@ import QtQuick.Dialogs
 
 ApplicationWindow {
     width: 960
-    height: 560
+    height: 650
     visible: true
     title: qsTr("ProtoTable App") + (RegimeManager.dirty ? " *" : "")
 
@@ -76,6 +76,22 @@ ApplicationWindow {
         selectionModel: ItemSelectionModel {
             model: RegimeManager.model
         }
+        
+        // Synchronize with controlsView scrollbar
+        property bool syncingScroll: false
+        
+        ScrollBar.vertical: ScrollBar {
+            id: tableScrollBar
+            policy: ScrollBar.AsNeeded
+            
+            onPositionChanged: {
+                if (!tableView.syncingScroll && !controlsView.syncingScroll) {
+                    controlsView.syncingScroll = true
+                    controlsView.ScrollBar.vertical.position = position
+                    controlsView.syncingScroll = false
+                }
+            }
+        }
 
         delegate: DelegateChooser {
             DelegateChoice {
@@ -99,10 +115,24 @@ ApplicationWindow {
                     inputMask: "99:99:99"
                     inputMethodHints: Qt.ImhTime
                     horizontalAlignment: TextInput.AlignHCenter
+                    
+                    // Custom validator for time range 00:00:01 to 23:59:59
+                    validator: RegularExpressionValidator {
+                        regularExpression: /^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/
+                    }
+                    
                     onEditingFinished: {
                         if (acceptableInput) {
-                            model.max_time = Utils.timeToSeconds(text)
+                            let seconds = Utils.timeToSeconds(text)
+                            // Enforce minimum 1 second, maximum 23:59:59 (86399 seconds)
+                            if (seconds >= 1 && seconds <= 86399) {
+                                model.max_time = seconds
+                            } else {
+                                // Reset to previous valid value
+                                text = Utils.formatTime(model.max_time)
+                            }
                         } else {
+                            // Reset to previous valid value
                             text = Utils.formatTime(model.max_time)
                         }
                     }
@@ -127,23 +157,32 @@ ApplicationWindow {
         y: 10
         width: 400
         height: 400
-        function getSelectedRows(){
-            let selectedRows = []
-            for(let i = 0; i < repeater.count; i++){
-                if(repeater.itemAt(i).isSelected)
-                {
-                    selectedRows.push(i)
+        clip: true
+        // implicitHeight: 400
+        // Synchronize with tableView scrollbar
+        property bool syncingScroll: false
+        
+        ScrollBar.vertical: ScrollBar {
+            id: controlsScrollBar
+            policy: ScrollBar.AsNeeded
+            
+            onPositionChanged: {
+                if (!controlsView.syncingScroll && !tableView.syncingScroll) {
+                    tableView.syncingScroll = true
+                    tableView.ScrollBar.vertical.position = position
+                    tableView.syncingScroll = false
                 }
-            }                        
-            return selectedRows
+            }
         }
-        contentWidth: controlsColumnLayout.implicitWidth
-        contentHeight: controlsColumnLayout.implicitHeight
-        ColumnLayout {
-            id: controlsColumnLayout
+        // contentWidth: controlsColumnLayout.implicitWidth
+        contentHeight: 41*repeater.count
+        Column {
+            // id: controlsColumnLayout
             spacing: 1
-            Layout.preferredWidth: parent.width
-            Layout.preferredHeight: childrenRect.height
+            width: 400
+            height: repeater.contentHeight
+            // Layout.preferredWidth: parent.width
+            // Layout.preferredHeight: childrenRect.height
             Repeater {
                 id: repeater
                 model: RegimeManager.model
@@ -154,7 +193,7 @@ ApplicationWindow {
                         delegate: ControlDelegate {
                             width: 250
                             height: 40 * model.cycle_row_count
-                            Layout.rowSpan: model.cycle_row_count
+                            // Layout.rowSpan: model.cycle_row_count
                             isSelected: false
                         }
                     }
@@ -169,7 +208,8 @@ ApplicationWindow {
                     DelegateChoice {
                         roleValue: 2
                         delegate: Item {
-                            height: 0
+                            visible: false
+                            height: 10
                             property bool isSelected: false
                         }
                     }
@@ -181,16 +221,13 @@ ApplicationWindow {
     TimeProgressBar {
         id: timeProgressBar
         x: 10
-        y: 410
-        width: 820
-        height: 60
-        model: RegimeManager.model
+        y: 420
     }
 
     MenuBar {
         id: menuBar
         x: 10
-        y: 500
+        y: 560
         Menu {
             title: "Файл"
             MenuItem {

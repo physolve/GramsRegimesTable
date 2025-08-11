@@ -149,15 +149,21 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
     Regime &regime = m_regimes[index.row()];
 
     if (role == RepeatRole) {
+        int repeatValue = value.toInt();
+        // Validate repeat count: must be between 1 and 1000
+        if (repeatValue < 1 || repeatValue > 1000) {
+            return false;
+        }
+        
         if (regime.m_cycleId != -1) {
             for (int i = 0; i < m_regimes.count(); ++i) {
                 if (m_regimes.at(i).m_cycleId == regime.m_cycleId) {
-                    m_regimes[i].m_cycleRepeat = value.toInt();
+                    m_regimes[i].m_cycleRepeat = repeatValue;
                     emit dataChanged(this->index(i, 0), this->index(i, columnCount() - 1), {RepeatRole});
                 }
             }
         } else {
-            regime.m_repeatCount = value.toInt();
+            regime.m_repeatCount = repeatValue;
             emit dataChanged(index, index, {RepeatRole});
         }
         emit totalTimeChanged();
@@ -165,17 +171,30 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
     }
 
     if (role == CycleRepeatRole) {
+        int cycleRepeatValue = value.toInt();
+        // Validate cycle repeat count: must be between 1 and 1000
+        if (cycleRepeatValue < 1 || cycleRepeatValue > 1000) {
+            return false;
+        }
+        
         for (int i = 0; i < m_regimes.count(); ++i) {
             if (m_regimes.at(i).m_cycleId == regime.m_cycleId) {
-                m_regimes[i].m_cycleRepeat = value.toInt();
+                m_regimes[i].m_cycleRepeat = cycleRepeatValue;
                 emit dataChanged(this->index(i, 0), this->index(i, columnCount() - 1), {RepeatRole});
             }
         }
+        emit totalTimeChanged();
         return true;
     }
 
     if (role == MaxTimeRole) {
-        regime.m_maxTime = value.toDouble();
+        int maxTimeValue = value.toInt();
+        // Validate max time: must be between 1 second and 23:59:59 (86399 seconds)
+        if (maxTimeValue < 1 || maxTimeValue > 86399) {
+            return false;
+        }
+        
+        regime.m_maxTime = maxTimeValue;
         emit dataChanged(index, index, {role, Qt::DisplayRole});
         emit totalTimeChanged();
         return true;
@@ -406,6 +425,10 @@ void ProtoTableModel::addRow(const QString &regimeName)
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     Regime newRegime;
     newRegime.m_name = regimeName;
+    // Set valid default values to prevent logic errors
+    newRegime.m_repeatCount = 1;     // Minimum valid repeat count
+    newRegime.m_cycleRepeat = 1;     // Minimum valid cycle repeat count
+    newRegime.m_maxTime = 60;        // Default to 1 minute (60 seconds)
     m_regimes.append(newRegime);
     endInsertRows();
     if (rowCount() > 1) {

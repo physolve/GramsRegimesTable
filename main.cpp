@@ -12,11 +12,11 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<Condition>();
     qmlRegisterUncreatableMetaObject(RegimeEnums::staticMetaObject, "com.grams.prototable", 1, 0, "RegimeState", "Error: only enums");
-    qmlRegisterType<VisibleRegimeModel>("com.grams.prototable", 1, 0, "VisibleRegimeModel");
 
     QQmlApplicationEngine engine;
     RegimeManager regimeManager;
     qmlRegisterSingletonInstance("com.grams.prototable", 1, 0, "RegimeManager", &regimeManager);
+
     const QUrl url("qrc:/prototype_table/qml/Main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
         &app, [url](QObject *obj, const QUrl &objUrl) {
@@ -24,5 +24,6 @@ int main(int argc, char *argv[])
                 QCoreApplication::exit(-1);
         }, Qt::QueuedConnection);
     engine.load(url);
+
     return app.exec();
 }

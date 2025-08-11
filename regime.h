@@ -50,9 +50,9 @@ class Regime {
 public:
     QString m_name;
     Condition m_condition;
-    int m_repeatCount = 0;
+    int m_repeatCount = 1;
     // Maximum time for the regime in seconds
-    int m_maxTime = 0;
+    int m_maxTime = 60;
     int m_cycleId = -1;
     int m_cycleRepeat = 1;
     RegimeEnums::State m_state = RegimeEnums::State::Waiting;

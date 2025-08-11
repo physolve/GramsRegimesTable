@@ -26,6 +26,10 @@ QVariant VisibleRegimeModel::data(const QModelIndex &index, int role) const
     case MaxTimeRole:
         return regime.m_maxTime;
     case RepeatCountRole:
+        // Return appropriate repeat count: cycle repeat for cycles, individual repeat for regimes
+        if (regime.m_cycleId != -1) {
+            return regime.m_cycleRepeat;
+        }
         return regime.m_repeatCount;
     case StateRole:
         return QVariant::fromValue(regime.m_state);
@@ -52,4 +56,10 @@ void VisibleRegimeModel::setRegimes(const QList<Regime> &regimes)
     beginResetModel();
     m_regimes = regimes;
     endResetModel();
+}
+
+void VisibleRegimeModel::notifyTimelineUpdate()
+{
+    // Emit signal to notify TimeProgressBar that timeline needs update
+    emit timelineUpdateRequired();
 }
