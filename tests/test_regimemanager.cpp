@@ -121,3 +121,99 @@ TEST_F(RegimeManagerTest, SaveRegimesAs) {
     ASSERT_TRUE(data.contains("Save As Test"));
     ASSERT_EQ(manager.currentFilePath(), QUrl::fromLocalFile(file.fileName()));
 }
+
+TEST_F(RegimeManagerTest, ExternalModuleAPI) {
+    RegimeManager manager;
+    QList<Regime> regimes;
+    
+    // Create a regime with time condition and 2 repeats
+    Regime r1;
+    r1.m_name = "API Test Regime";
+    r1.m_maxTime = 60; // 60 seconds execution time
+    r1.m_repeatCount = 2;
+    r1.m_condition.type = "time";
+    r1.m_condition.time = 1; // 1 minute (60 seconds) condition time
+    regimes.append(r1);
+    
+    manager.model()->setRegimes(regimes);
+    
+    // Test 1: Start regime execution
+    ASSERT_TRUE(manager.startRegimeExecution(0));
+    auto info = manager.getRegimeExecutionInfo(0);
+    ASSERT_EQ(info["currentRepeat"].toInt(), 0);
+    ASSERT_FALSE(info["conditionCompleted"].toBool());
+    
+    // Test 2: Update condition progress
+    ASSERT_TRUE(manager.updateConditionProgress(0, 30, 0)); // 30 seconds into condition
+    info = manager.getRegimeExecutionInfo(0);
+    ASSERT_EQ(info["conditionTimePassed"].toInt(), 30);
+    
+    // Test 3: Complete condition
+    ASSERT_TRUE(manager.confirmConditionCompletion(0, 0));
+    info = manager.getRegimeExecutionInfo(0);
+    ASSERT_TRUE(info["conditionCompleted"].toBool());
+    ASSERT_EQ(info["conditionTimePassed"].toInt(), 60); // Full condition time
+    
+    // Test 4: Update regime progress
+    ASSERT_TRUE(manager.updateRegimeProgress(0, 45, 0)); // 45 seconds into execution
+    info = manager.getRegimeExecutionInfo(0);
+    ASSERT_EQ(info["regimeTimePassed"].toInt(), 45);
+    
+    // Test 5: Complete first repeat
+    ASSERT_TRUE(manager.completeCurrentRepeat(0, 0));
+    info = manager.getRegimeExecutionInfo(0);
+    ASSERT_EQ(info["currentRepeat"].toInt(), 1); // Moved to repeat 1
+    ASSERT_EQ(info["repeatsDone"].toInt(), 1);
+    ASSERT_FALSE(info["conditionCompleted"].toBool()); // Reset for new repeat
+    ASSERT_EQ(info["conditionTimePassed"].toInt(), 0); // Reset
+    ASSERT_EQ(info["regimeTimePassed"].toInt(), 0); // Reset
+    
+    // Test 6: Skip second repeat
+    ASSERT_TRUE(manager.skipCurrentRepeat(0, 1));
+    info = manager.getRegimeExecutionInfo(0);
+    ASSERT_EQ(info["repeatsSkipped"].toInt(), 1);
+    // Should be done since all repeats processed (1 done + 1 skipped = 2 total)
+    auto state = manager.model()->data(manager.model()->index(0, 0), ProtoTableModel::StateRole).value<RegimeEnums::State>();
+    ASSERT_EQ(state, RegimeEnums::State::Done);
+    
+    // Test 7: Reset regime
+    ASSERT_TRUE(manager.resetRegimeExecution(0));
+    info = manager.getRegimeExecutionInfo(0);
+    ASSERT_EQ(info["currentRepeat"].toInt(), 0);
+    ASSERT_EQ(info["repeatsDone"].toInt(), 0);
+    ASSERT_EQ(info["repeatsSkipped"].toInt(), 0);
+    state = manager.model()->data(manager.model()->index(0, 0), ProtoTableModel::StateRole).value<RegimeEnums::State>();
+    ASSERT_EQ(state, RegimeEnums::State::Waiting);
+}
+
+TEST_F(RegimeManagerTest, APIValidation) {
+    RegimeManager manager;
+    QList<Regime> regimes;
+    
+    Regime r1;
+    r1.m_name = "Validation Test";
+    r1.m_maxTime = 60;
+    r1.m_repeatCount = 1;
+    r1.m_condition.type = "none";
+    regimes.append(r1);
+    
+    manager.model()->setRegimes(regimes);
+    
+    // Test invalid regime ID
+    ASSERT_FALSE(manager.startRegimeExecution(-1));
+    ASSERT_FALSE(manager.startRegimeExecution(999));
+    
+    // Start regime
+    ASSERT_TRUE(manager.startRegimeExecution(0));
+    
+    // Test repeat validation
+    ASSERT_FALSE(manager.updateRegimeProgress(0, 30, 999)); // Wrong repeat number
+    ASSERT_TRUE(manager.updateRegimeProgress(0, 30, 0));    // Correct repeat number
+    
+    // Test invalid time values
+    ASSERT_FALSE(manager.updateRegimeProgress(0, -10, 0));  // Negative time
+    ASSERT_FALSE(manager.updateRegimeProgress(0, 999, 0));  // Exceeds limit
+    
+    // Test double start
+    ASSERT_FALSE(manager.startRegimeExecution(0)); // Already running
+}

@@ -32,7 +32,11 @@ public:
         RepeatsDoneRole,
         RepeatsSkippedRole,
         RepeatsErrorRole,
-        CycleIdRole
+        CycleIdRole,
+        CurrentRepeatRole,
+        ConditionCompletedRole,
+        ConditionTimePassedRole,
+        RegimeTimePassedRole
     };
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;

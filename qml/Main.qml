@@ -69,7 +69,7 @@ ApplicationWindow {
         columnSpacing: 1
         rowSpacing: 1
         rowHeightProvider: (row) => 40
-        property var columnWidths: [80, 270, 80, 85]
+        property var columnWidths: [80, 150, 80, 85]
         columnWidthProvider: function (column) { return columnWidths[column] }
         boundsBehavior: TableView.StopAtBounds
         model: RegimeManager.model
@@ -153,7 +153,7 @@ ApplicationWindow {
 
     ScrollView {
         id: controlsView
-        x: 560
+        x: 410
         y: 10
         width: 400
         height: 400
@@ -327,6 +327,14 @@ ApplicationWindow {
                     for(let i = 0; i < repeater.count; i++)
                         repeater.itemAt(i).isSelected = false
                 }
+            }
+            // delete later testing
+        }
+        Menu {
+            title: "Тест"
+            MenuItem{
+                text: "Тест выполенеие условие и время в первом"
+                onTriggered: RegimeManager.testUpdatingRegimes()
             }
         }
     }

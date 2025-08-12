@@ -3,7 +3,7 @@
         "name": "Вакуум",
         "condition": {
             "temp": 100,
-            "time": 0,
+            "time": 10,
             "type": "temp"
         },
         "max_time": 60,
@@ -15,8 +15,8 @@
         "name": "Режим а",
         "condition": {
             "temp": 0,
-            "time": 120,
-            "type": "time"
+            "time": 0,
+            "type": "none"
         },
         "max_time": 10,
         "note": "",
@@ -29,8 +29,8 @@
     {
         "condition": {
             "temp": 0,
-            "time": 120,
-            "type": "time"
+            "time": 0,
+            "type": "none"
         },
         "max_time": 10,
         "name": "Режим б",
@@ -45,8 +45,8 @@
         "name": "Вакуум",
         "condition": {
             "temp": 0,
-            "time": 100,
-            "type": "time"
+            "time": 0,
+            "type": "none"
         },
         "max_time": 120,
         "note": "",

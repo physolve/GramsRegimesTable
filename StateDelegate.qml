@@ -4,6 +4,12 @@ import com.grams.prototable
 
 TextField {
     id: stateDelegate
+    required property int row
+    required property int column
+    required property bool current
+    required property bool editing
+    required property bool selected
+    required property var model
     function toHHMMSS(secs) { // seems working
         
         let newDate = new Date(secs * 1000).toISOString().slice(11, 19);

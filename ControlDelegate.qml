@@ -7,9 +7,24 @@ import com.grams.prototable
 Rectangle {
     id: root
     width: 250
-    border.color: "black"
-    border.width: 1
-    color: isSelected ? "lightblue" : "white"
+    border.color: {
+        // Cycle highlighting: orange border for cycles, black for individual regimes
+        if (model.cycle_status === 1) {
+            return "#ff8c00"  // Orange border for cycles
+        }
+        return "black"     // Black border for individual regimes
+    }
+    border.width: model.cycle_status === 1 ? 2 : 1  // Thicker border for cycles
+    color: {
+        if (isSelected) {
+            return "lightblue"
+        }
+        // Background highlighting for cycles
+        if (model.cycle_status === 1) {
+            return "#fff8dc"  // Light cream background for cycles
+        }
+        return "white"     // White background for individual regimes
+    }
     required property int index
     required property var model
     property bool isSelected: false

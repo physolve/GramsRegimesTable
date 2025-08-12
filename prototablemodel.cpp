@@ -136,6 +136,22 @@ QVariant ProtoTableModel::data(const QModelIndex &index, int role) const
     if (role == CycleIdRole) {
         return regime.m_cycleId;
     }
+    
+    if (role == CurrentRepeatRole) {
+        return regime.m_currentRepeat;
+    }
+    
+    if (role == ConditionCompletedRole) {
+        return regime.m_conditionCompleted;
+    }
+    
+    if (role == ConditionTimePassedRole) {
+        return regime.m_conditionTimePassed;
+    }
+    
+    if (role == RegimeTimePassedRole) {
+        return regime.m_regimeTimePassed;
+    }
 
     return QVariant();
 }
@@ -242,6 +258,34 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
         emit dataChanged(index, index, {role});
         return true;
     }
+    
+    if (role == CurrentRepeatRole) {
+        regime.m_currentRepeat = value.toInt();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+    
+    if (role == ConditionCompletedRole) {
+        regime.m_conditionCompleted = value.toBool();
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+    
+    if (role == ConditionTimePassedRole) {
+        regime.m_conditionTimePassed = value.toInt();
+        // Update total time passed
+        regime.m_timePassedInSeconds = regime.m_conditionTimePassed + regime.m_regimeTimePassed;
+        emit dataChanged(index, index, {role, TimePassedInSecondsRole});
+        return true;
+    }
+    
+    if (role == RegimeTimePassedRole) {
+        regime.m_regimeTimePassed = value.toInt();
+        // Update total time passed
+        regime.m_timePassedInSeconds = regime.m_conditionTimePassed + regime.m_regimeTimePassed;
+        emit dataChanged(index, index, {role, TimePassedInSecondsRole});
+        return true;
+    }
 
     return false;
 }
@@ -295,7 +339,11 @@ QHash<int, QByteArray> ProtoTableModel::roleNames() const
         { CycleStatusRole, "cycle_status" },
         { CycleRepeatRole, "cycle_repeat" },
         { StateRole, "state" },
-        { TimePassedInSecondsRole, "time_passed_in_seconds" }
+        { TimePassedInSecondsRole, "time_passed_in_seconds" },
+        { CurrentRepeatRole, "current_repeat" },
+        { ConditionCompletedRole, "condition_completed" },
+        { ConditionTimePassedRole, "condition_time_passed" },
+        { RegimeTimePassedRole, "regime_time_passed" }
     };
 }
 
@@ -611,6 +659,11 @@ QVariantMap ProtoTableModel::getRegimeAsVariantMap(int row) const
     map.insert("repeatsError", regime.m_repeatsError);
     map.insert("cycleId", regime.m_cycleId);
     map.insert("cycleRepeat", regime.m_cycleRepeat);
+    // Add new tracking fields
+    map.insert("currentRepeat", regime.m_currentRepeat);
+    map.insert("conditionCompleted", regime.m_conditionCompleted);
+    map.insert("conditionTimePassed", regime.m_conditionTimePassed);
+    map.insert("regimeTimePassed", regime.m_regimeTimePassed);
     return map;
 }
 

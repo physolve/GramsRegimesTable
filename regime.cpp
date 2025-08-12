@@ -12,6 +12,10 @@ QJsonObject Condition::toJson() const {
 Condition Condition::fromJson(const QJsonObject &json) {
     Condition c;
     c.type = json["type"].toString();
+    // If type is empty or invalid, default to "none"
+    if (c.type.isEmpty() || (c.type != "none" && c.type != "time" && c.type != "temp")) {
+        c.type = "none";
+    }
     c.temp = json["temp"].toDouble();
     c.time = json["time"].toInt();
     return c;

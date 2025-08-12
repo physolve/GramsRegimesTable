@@ -32,6 +32,14 @@ Rectangle {
         }
     }
     
+    Connections {
+        target: RegimeManager
+        function onRegimeDataUpdated() {
+            // Force immediate refresh of timeline when regime data changes
+            updateTimeRange()
+        }
+    }
+    
     function updateTimeRange() {
         var totalTime = RegimeManager.getTotalEstimatedTime()
         if (totalTime > 0) {
@@ -116,7 +124,8 @@ Rectangle {
                         var visibleDuration = root.visibleEndTime - root.visibleStartTime
                         if (visibleDuration <= 0) return 0
                         var baseWidth = root.width  // Same as available width calculation
-                        return (model.maxTime * model.repeatCount) / visibleDuration * baseWidth * timelineScale
+                        // Each entry now represents a single repeat, so use maxTime directly
+                        return model.maxTime / visibleDuration * baseWidth * timelineScale
                     }
                     height: progressBar.height
                     
@@ -130,27 +139,91 @@ Rectangle {
                         }
                     }
                     
-                    border.color: "#c0c0c0"
-                    border.width: 1
+                    border.color: model.isCycle ? "#ff8c00" : "#c0c0c0"  // Orange border for cycles
+                    border.width: model.isCycle ? 2 : 1                   // Thicker border for cycles
 
-                    // Progress indicator for running regimes
+                    // Each rectangle now represents a single repeat
+                    // Condition progress indicator (if condition time exists)
                     Rectangle {
-                        width: model.maxTime > 0 ? (model.timePassedInSeconds / model.maxTime) * parent.width : 0
+                        id: conditionProgress
+                        width: {
+                            if (model.conditionTime > 0 && model.state === 2) { // Running
+                                var conditionTimePassed = model.conditionTimePassed || 0
+                                var conditionProgressRatio = conditionTimePassed / model.conditionTime
+                                var conditionWidthRatio = model.conditionTime / model.maxTime
+                                return Math.min(conditionProgressRatio, 1.0) * conditionWidthRatio * parent.width
+                            }
+                            return 0
+                        }
                         height: parent.height
-                        color: "#3399ff"
+                        color: "#ff9500"  // Orange color for condition progress
+                        opacity: 0.8
+                        visible: model.conditionTime > 0 && model.state === 2 // Only show when running and has condition
+                    }
+                    
+                    // Regime execution progress indicator (starts after condition)
+                    Rectangle {
+                        id: regimeProgress
+                        x: {
+                            if (model.conditionTime > 0) {
+                                var conditionWidthRatio = model.conditionTime / model.maxTime
+                                return conditionWidthRatio * parent.width
+                            }
+                            return 0
+                        }
+                        width: {
+                            if (model.maxTime > 0 && model.state === 2) { // Running
+                                var regimeTimePassed = model.regimeTimePassed || 0
+                                var regimeExecutionTime = model.regimeExecutionTime
+                                
+                                if (regimeExecutionTime > 0) {
+                                    var regimeProgressRatio = regimeTimePassed / regimeExecutionTime
+                                    var regimeWidthRatio = regimeExecutionTime / model.maxTime
+                                    return Math.min(regimeProgressRatio, 1.0) * regimeWidthRatio * parent.width
+                                }
+                            }
+                            return 0
+                        }
+                        height: parent.height
+                        color: "#3399ff"  // Blue color for regime execution progress
                         opacity: 0.7
                         visible: model.state === 2 // Running
                     }
+                    
+                    // Separator line between condition and regime execution (if condition exists)
+                    Rectangle {
+                        x: {
+                            if (model.conditionTime > 0) {
+                                var conditionWidthRatio = model.conditionTime / model.maxTime
+                                return conditionWidthRatio * parent.width - 1
+                            }
+                            return 0
+                        }
+                        width: 2
+                        height: parent.height
+                        color: "#333333"  // Dark separator line
+                        opacity: 0.6
+                        visible: model.conditionTime > 0
+                    }
 
-                    // Regime name text
+                    // Regime name text with repeat info
                     Text {
-                        text: model.name
+                        text: {
+                            var baseName = model.name
+                            var repeatInfo = "R" + (model.repeatIndex + 1)
+                            if (model.isCycleEntry) {
+                                repeatInfo += "/C" + (model.cycleRepeatIndex + 1)
+                            }
+                            return baseName + "\n" + repeatInfo
+                        }
                         anchors.centerIn: parent
                         color: "black"
-                        font.pixelSize: Math.max(8, Math.min(12, parent.width / 8))
+                        font.pixelSize: Math.max(6, Math.min(10, parent.width / 12))
                         elide: Text.ElideRight
                         width: parent.width - 4
                         horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        wrapMode: Text.WordWrap
                     }
                     
                     // Tooltip on hover
@@ -159,9 +232,59 @@ Rectangle {
                         hoverEnabled: true
                         
                         ToolTip {
-                            contentWidth: 100
+                            contentWidth: 200
                             visible: parent.containsMouse
-                            text: `${model.name}\nDuration: ${formatTime(model.maxTime)} \nRepeats:  ${model.repeatCount}\nState: ${getStateName(model.state)}`
+                            text: {
+                                var tooltip = `${model.name}\nRepeat: ${model.repeatIndex + 1}`
+                                
+                                if (model.isCycleEntry) {
+                                    tooltip += ` (Cycle ${model.cycleRepeatIndex + 1})`
+                                }
+                                
+                                tooltip += `\nDuration: ${formatTime(model.maxTime)}\nState: ${getStateName(model.state)}`
+                                
+                                // Add progress information
+                                if (model.conditionTime > 0) {
+                                    if (model.conditionCompleted) {
+                                        tooltip += `\nCondition: ✓ Complete`
+                                        tooltip += `\nExecution Progress: ${formatTime(model.regimeTimePassed || 0)} / ${formatTime(model.regimeExecutionTime)}`
+                                    } else {
+                                        tooltip += `\nCondition Progress: ${formatTime(model.conditionTimePassed || 0)} / ${formatTime(model.conditionTime)}`
+                                    }
+                                } else {
+                                    tooltip += `\nExecution Progress: ${formatTime(model.regimeTimePassed || 0)} / ${formatTime(model.regimeExecutionTime)}`
+                                }
+                                
+                                // Add condition information if available
+                                var regime = RegimeManager.model.getRegime(index)
+                                if (regime && regime.condition) {
+                                    if (regime.condition.type === "time") {
+                                        tooltip += `\nCondition: Wait ${regime.condition.time} min`
+                                    } else if (regime.condition.type === "temp") {
+                                        tooltip += `\nCondition: ${regime.condition.temp}°C + ${regime.condition.time} min`
+                                    } else {
+                                        tooltip += `\nCondition: None`
+                                    }
+                                }
+                                
+                                // Add execution time breakdown
+                                if (model.conditionTime > 0) {
+                                    tooltip += `\nCondition Time: ${formatTime(model.conditionTime)}`
+                                    tooltip += `\nExecution Time: ${formatTime(model.regimeExecutionTime)}`
+                                }
+                                
+                                // Add repeat statistics if any completed
+                                if (regime && (regime.repeatsDone > 0 || regime.repeatsSkipped > 0 || regime.repeatsError > 0)) {
+                                    tooltip += `\nCompleted: ${regime.repeatsDone}, Skipped: ${regime.repeatsSkipped}, Errors: ${regime.repeatsError}`
+                                }
+                                
+                                if (model.isCycle) {
+                                    tooltip += `\nCycle ID: ${model.cycleId}\nType: Cycle`
+                                } else {
+                                    tooltip += `\nType: Individual Regime`
+                                }
+                                return tooltip
+                            }
                             delay: 500
                         }
                     }

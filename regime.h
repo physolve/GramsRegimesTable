@@ -26,7 +26,7 @@ struct Condition {
     Q_PROPERTY(int time MEMBER time)
 
 public:
-    QString type;
+    QString type = "none";  // Default to "none"
     double temp = 0.0;
     // Time in minutes
     int time = 0;
@@ -61,6 +61,12 @@ public:
     int m_repeatsDone = 0;
     int m_repeatsSkipped = 0;
     int m_repeatsError = 0;
+    
+    // Current execution tracking
+    int m_currentRepeat = 0;        // Current repeat number (0-based)
+    bool m_conditionCompleted = false;  // Whether condition phase is completed
+    int m_conditionTimePassed = 0;  // Time passed in condition phase (seconds)
+    int m_regimeTimePassed = 0;     // Time passed in execution phase (seconds)
 
     bool operator==(const Regime &other) const = default;
 
