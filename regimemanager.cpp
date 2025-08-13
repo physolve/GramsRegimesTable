@@ -20,7 +20,7 @@ RegimeManager::RegimeManager(QObject *parent)
     // Forward VisibleRegimeModel signal to RegimeManager signal for backward compatibility
     connect(&m_visibleRegimeModel, &VisibleRegimeModel::timelineUpdateRequired, this, &RegimeManager::totalTimeChanged);
 
-    // Removed hardcoded state change call - use setRegimeState() API instead
+    connect(this, &RegimeManager::stateChanged, this, &RegimeManager::updateRegimeState);
 }
 
 // delete late
@@ -29,24 +29,24 @@ void RegimeManager::testUpdatingRegimes(){
     startRegimeExecution(0);
     
     // Update condition progress for repeat 0
-    // updateConditionProgress(0, 30, 0);  // 30 seconds into condition, repeat 0
+    updateConditionProgress(0, 30, 0);  // 30 seconds into condition, repeat 0
     updateConditionProgress(0, 60, 0);  // Complete condition time, repeat 0
     
     // Confirm condition completion for repeat 0
     confirmConditionCompletion(0, 0);
     
     // Update regime execution progress for repeat 0
-    // updateRegimeProgress(0, 600, 0);     // 45 seconds into execution, repeat 0
+    updateRegimeProgress(0, 45, 0);     // 45 seconds into execution, repeat 0
     updateRegimeProgress(0, 120, 0);    // Complete execution time, repeat 0
     
     // Complete first repeat (moves to repeat 1)
-    completeCurrentRepeat(0, 0);
+    // completeCurrentRepeat(0, 0);
     
     // Now working on repeat 1 - update condition progress
-    updateConditionProgress(0, 20, 1);  // 20 seconds into condition, repeat 1
+    // updateConditionProgress(0, 20, 1);  // 20 seconds into condition, repeat 1
     
     // Skip the second repeat
-    skipCurrentRepeat(0, 1);
+    // skipCurrentRepeat(0, 1);
     
     qDebug() << "testUpdatingRegimes completed - regime should show repeat progression";
 }
@@ -207,7 +207,7 @@ void RegimeManager::refreshVisibleRegimes()
     emit regimeDataUpdated();
 }
 
-void RegimeManager::onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds)
+void RegimeManager::updateRegimeState(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds)
 {
     if (regimeIndex < 0 || regimeIndex >= m_model.rowCount())
         return;
@@ -246,7 +246,6 @@ void RegimeManager::setRegimeState(int regimeId, RegimeEnums::State state)
     
     // Emit the stateChanged signal for external modules to react
     emit stateChanged(regimeId, state, m_model.data(m_model.index(regimeId, 0), ProtoTableModel::TimePassedInSecondsRole).toInt());
-    emit totalTimeChanged();
 }
 
 int RegimeManager::getRepeatsDone(int regimeId) const

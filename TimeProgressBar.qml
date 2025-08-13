@@ -209,10 +209,13 @@ Rectangle {
                     // Regime name text with repeat info
                     Text {
                         text: {
-                            var baseName = model.name
-                            var repeatInfo = "R" + (model.repeatIndex + 1)
-                            if (model.isCycleEntry) {
-                                repeatInfo += "/C" + (model.cycleRepeatIndex + 1)
+                            let baseName = model.name
+                            let repeatInfo = ""
+                            if (!model.isCycleEntry) {
+                                repeatInfo += "Повтор " + (model.repeatIndex + 1)
+                            }
+                            else{
+                                repeatInfo += "Цикл " + (model.cycleRepeatIndex + 1)
                             }
                             return baseName + "\n" + repeatInfo
                         }
@@ -235,53 +238,53 @@ Rectangle {
                             contentWidth: 200
                             visible: parent.containsMouse
                             text: {
-                                var tooltip = `${model.name}\nRepeat: ${model.repeatIndex + 1}`
+                                var tooltip = `${model.name}\nПовтор: ${model.repeatIndex + 1}`
                                 
                                 if (model.isCycleEntry) {
-                                    tooltip += ` (Cycle ${model.cycleRepeatIndex + 1})`
+                                    tooltip += ` (Цикл ${model.cycleRepeatIndex + 1})`
                                 }
                                 
-                                tooltip += `\nDuration: ${formatTime(model.maxTime)}\nState: ${getStateName(model.state)}`
+                                tooltip += `\nДлительность: ${formatTime(model.maxTime)}\nСостояние: ${getStateName(model.state)}`
                                 
                                 // Add progress information
                                 if (model.conditionTime > 0) {
                                     if (model.conditionCompleted) {
-                                        tooltip += `\nCondition: ✓ Complete`
-                                        tooltip += `\nExecution Progress: ${formatTime(model.regimeTimePassed || 0)} / ${formatTime(model.regimeExecutionTime)}`
+                                        tooltip += `\nУсловие: ✓ Выполнено`
+                                        tooltip += `\nПрогресс выполнения: ${formatTime(model.regimeTimePassed || 0)} / ${formatTime(model.regimeExecutionTime)}`
                                     } else {
-                                        tooltip += `\nCondition Progress: ${formatTime(model.conditionTimePassed || 0)} / ${formatTime(model.conditionTime)}`
+                                        tooltip += `\nПрогресс условия: ${formatTime(model.conditionTimePassed || 0)} / ${formatTime(model.conditionTime)}`
                                     }
                                 } else {
-                                    tooltip += `\nExecution Progress: ${formatTime(model.regimeTimePassed || 0)} / ${formatTime(model.regimeExecutionTime)}`
+                                    tooltip += `\nПрогресс выполнения: ${formatTime(model.regimeTimePassed || 0)} / ${formatTime(model.regimeExecutionTime)}`
                                 }
                                 
                                 // Add condition information if available
                                 var regime = RegimeManager.model.getRegime(index)
                                 if (regime && regime.condition) {
                                     if (regime.condition.type === "time") {
-                                        tooltip += `\nCondition: Wait ${regime.condition.time} min`
+                                        tooltip += `\nУсловие: Ожидание ${regime.condition.time} мин`
                                     } else if (regime.condition.type === "temp") {
-                                        tooltip += `\nCondition: ${regime.condition.temp}°C + ${regime.condition.time} min`
+                                        tooltip += `\nУсловие: ${regime.condition.temp}°C + ${regime.condition.time} мин`
                                     } else {
-                                        tooltip += `\nCondition: None`
+                                        tooltip += `\nУсловие: Отсутствует`
                                     }
                                 }
                                 
                                 // Add execution time breakdown
                                 if (model.conditionTime > 0) {
-                                    tooltip += `\nCondition Time: ${formatTime(model.conditionTime)}`
-                                    tooltip += `\nExecution Time: ${formatTime(model.regimeExecutionTime)}`
+                                    tooltip += `\nВремя условия: ${formatTime(model.conditionTime)}`
+                                    tooltip += `\nВремя выполнения: ${formatTime(model.regimeExecutionTime)}`
                                 }
                                 
                                 // Add repeat statistics if any completed
                                 if (regime && (regime.repeatsDone > 0 || regime.repeatsSkipped > 0 || regime.repeatsError > 0)) {
-                                    tooltip += `\nCompleted: ${regime.repeatsDone}, Skipped: ${regime.repeatsSkipped}, Errors: ${regime.repeatsError}`
+                                    tooltip += `\nВыполнено: ${regime.repeatsDone}, Пропущено: ${regime.repeatsSkipped}, Ошибок: ${regime.repeatsError}`
                                 }
                                 
                                 if (model.isCycle) {
-                                    tooltip += `\nCycle ID: ${model.cycleId}\nType: Cycle`
+                                    tooltip += `\nID цикла: ${model.cycleId}\nТип: Цикл`
                                 } else {
-                                    tooltip += `\nType: Individual Regime`
+                                    tooltip += `\nТип: Отдельный режим`
                                 }
                                 return tooltip
                             }

@@ -134,22 +134,38 @@ void VisibleRegimeModel::setRegimes(const QList<Regime> &regimes)
 void VisibleRegimeModel::expandRegimesToRepeats(const QList<Regime> &regimes)
 {
     m_repeatEntries.clear();
-    
+    QSet<int> processedCycleIds;
+
     for (int regimeIndex = 0; regimeIndex < regimes.count(); ++regimeIndex) {
         const Regime &regime = regimes.at(regimeIndex);
-        
+
         if (regime.m_cycleId != -1) {
-            // This is part of a cycle - expand by cycle repeats
-            for (int cycleRepeat = 0; cycleRepeat < regime.m_cycleRepeat; ++cycleRepeat) {
-                for (int repeat = 0; repeat < regime.m_repeatCount; ++repeat) {
-                    RepeatEntry entry;
-                    entry.regime = regime;
-                    entry.repeatIndex = repeat;
-                    entry.regimeIndex = regimeIndex;
-                    entry.isCycleEntry = true;
-                    entry.cycleRepeatIndex = cycleRepeat;
-                    m_repeatEntries.append(entry);
+            if (!processedCycleIds.contains(regime.m_cycleId)) {
+                // This is the first regime of a new cycle
+                QList<int> cycleRegimeIndices;
+                for (int i = regimeIndex; i < regimes.count(); ++i) {
+                    if (regimes.at(i).m_cycleId == regime.m_cycleId) {
+                        cycleRegimeIndices.append(i);
+                    }
                 }
+
+                for (int cycleRepeat = 0; cycleRepeat < regime.m_cycleRepeat; ++cycleRepeat) {
+                    for (int cycleRegimeIndex : cycleRegimeIndices) {
+                        const Regime &cycleRegime = regimes.at(cycleRegimeIndex);
+                        // a cycle regime is a sequence of regimes that repeats
+                        // so we need to add each repeat of the regime to the list
+                         for (int repeat = 0; repeat < cycleRegime.m_repeatCount; ++repeat) {
+                            RepeatEntry entry;
+                            entry.regime = cycleRegime;
+                            entry.repeatIndex = repeat;
+                            entry.regimeIndex = cycleRegimeIndex;
+                            entry.isCycleEntry = true;
+                            entry.cycleRepeatIndex = cycleRepeat;
+                            m_repeatEntries.append(entry);
+                        }
+                    }
+                }
+                processedCycleIds.insert(regime.m_cycleId);
             }
         } else {
             // Individual regime - expand by repeat count

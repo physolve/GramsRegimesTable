@@ -151,7 +151,7 @@ public:
     Q_INVOKABLE void testUpdatingRegimes();
 
 public slots:
-    void onStateChanged(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
+    void updateRegimeState(int regimeIndex, RegimeEnums::State state, int timePassedInSeconds);
 
 signals:
     void currentFilePathChanged();

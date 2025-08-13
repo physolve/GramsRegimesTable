@@ -35,7 +35,7 @@ TextField {
             case RegimeState.Done:
                 return toHHMMSS(model.max_time*60);
             case RegimeState.Error:
-                return "Error";
+                return "Ошибка";
             case RegimeState.Stopped:
             default:
                 return "Ожидание";

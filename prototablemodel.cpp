@@ -230,44 +230,44 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
 
     if (role == StateRole) {
         regime.m_state = value.value<RegimeEnums::State>();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         checkAndUpdateRunningState();
         return true;
     }
 
     if (role == TimePassedInSecondsRole) {
         regime.m_timePassedInSeconds = value.toInt();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         return true;
     }
 
     if (role == RepeatsDoneRole) {
         regime.m_repeatsDone = value.toInt();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         return true;
     }
 
     if (role == RepeatsSkippedRole) {
         regime.m_repeatsSkipped = value.toInt();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         return true;
     }
 
     if (role == RepeatsErrorRole) {
         regime.m_repeatsError = value.toInt();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         return true;
     }
     
     if (role == CurrentRepeatRole) {
         regime.m_currentRepeat = value.toInt();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         return true;
     }
     
     if (role == ConditionCompletedRole) {
         regime.m_conditionCompleted = value.toBool();
-        emit dataChanged(index, index, {role});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
         return true;
     }
     
@@ -275,7 +275,7 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
         regime.m_conditionTimePassed = value.toInt();
         // Update total time passed
         regime.m_timePassedInSeconds = regime.m_conditionTimePassed + regime.m_regimeTimePassed;
-        emit dataChanged(index, index, {role, TimePassedInSecondsRole});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role, TimePassedInSecondsRole});
         return true;
     }
     
@@ -283,7 +283,7 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
         regime.m_regimeTimePassed = value.toInt();
         // Update total time passed
         regime.m_timePassedInSeconds = regime.m_conditionTimePassed + regime.m_regimeTimePassed;
-        emit dataChanged(index, index, {role, TimePassedInSecondsRole});
+        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role, TimePassedInSecondsRole});
         return true;
     }
 

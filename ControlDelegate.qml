@@ -67,6 +67,13 @@ Rectangle {
             height: 40
             width: 40
             text: "⬆️"
+            font.pointSize: 15
+            background: Rectangle {
+                color: "transparent" // Or "#00000000" for full transparency
+                // You can add borders or other visual elements if desired
+                // border.color: "lightgray"
+                // border.width: 1
+            }
             visible: RegimeManager.model.isMoveUpEnabled([index])
             onClicked: {
                 RegimeManager.model.moveSelection([index], true)
@@ -79,6 +86,13 @@ Rectangle {
             height: 40
             width: 40
             text: "⬇️"
+            font.pointSize: 15
+            background: Rectangle {
+                color: "transparent" // Or "#00000000" for full transparency
+                // You can add borders or other visual elements if desired
+                // border.color: "lightgray"
+                // border.width: 1
+            }
             visible: RegimeManager.model.isMoveDownEnabled([index])
             onClicked: {
                 RegimeManager.model.moveSelection([index], false)
@@ -91,6 +105,13 @@ Rectangle {
             height: 40
             width: 40
             text: "🗑️"
+            font.pointSize: 15
+            background: Rectangle {
+                color: "transparent" // Or "#00000000" for full transparency
+                // You can add borders or other visual elements if desired
+                // border.color: "lightgray"
+                // border.width: 1
+            }
             visible: root.isSelected
             onClicked: {
                 RegimeManager.model.deleteRows([index])
