@@ -25,8 +25,9 @@ QJsonObject Regime::toJson() const {
     QJsonObject json;
     json["name"] = m_name;
     json["condition"] = m_condition.toJson();
+    json["max_time"] = m_maxTime / 60;
+    json["note"] = ""; // Add empty note to match original structure
     json["repeat"] = m_repeatCount;
-    json["max_time"] = m_maxTime;
     if (m_cycleId != -1) {
         QJsonObject cycleObj;
         cycleObj["id"] = m_cycleId;

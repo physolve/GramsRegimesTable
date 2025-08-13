@@ -27,7 +27,6 @@ public:
     Q_INVOKABLE void importRegimes(const QUrl &filePath);
     Q_INVOKABLE void exportRegimes(const QUrl &filePath);
     Q_INVOKABLE void saveRegimes();
-    void saveRegimesAs(const QUrl &filePath);
 
     VisibleRegimeModel* visibleRegimeModel();
 

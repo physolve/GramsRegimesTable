@@ -101,27 +101,6 @@ TEST_F(RegimeManagerTest, SaveRegimes) {
     ASSERT_TRUE(data.contains("Save Test"));
 }
 
-TEST_F(RegimeManagerTest, SaveRegimesAs) {
-    RegimeManager manager;
-    QList<Regime> regimes;
-    Regime r;
-    r.m_name = "Save As Test";
-    regimes.append(r);
-    manager.model()->setRegimes(regimes);
-
-    QTemporaryFile file(tempDir.path() + "/save_as_test.json");
-    ASSERT_TRUE(file.open());
-    file.close();
-
-    manager.saveRegimesAs(QUrl::fromLocalFile(file.fileName()));
-
-    QFile savedFile(file.fileName());
-    ASSERT_TRUE(savedFile.open(QIODevice::ReadOnly));
-    QByteArray data = savedFile.readAll();
-    ASSERT_TRUE(data.contains("Save As Test"));
-    ASSERT_EQ(manager.currentFilePath(), QUrl::fromLocalFile(file.fileName()));
-}
-
 TEST_F(RegimeManagerTest, ExternalModuleAPI) {
     RegimeManager manager;
     QList<Regime> regimes;

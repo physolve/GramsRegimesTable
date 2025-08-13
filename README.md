@@ -1,4 +1,88 @@
-## 📋 **TODO for Wednesday, December 18, 2024 - FINAL MODULE COMPLETION**
+# TODO for Thursday, August 14, 2025
+
+### **🎯 GOAL: Finalize the `ProtoTable` module with visual refinements, documentation, and testing.**
+
+---
+
+#### **1. Visual Refinements for Material Design** 🎨
+- **Objective**: Adjust the UI to better align with the Material Design specification, focusing on a cleaner look and feel for the Dark theme.
+- **Tasks**:
+  - **Font Sizes**: Reduce font sizes throughout the application to create a more compact and professional appearance.
+  - **Color Palette**:
+    - Review and update the color scheme for the Dark Material theme to ensure consistency and readability.
+    - Adjust background, text, and accent colors to match Material Design guidelines.
+    - Ensure that all colors provide sufficient contrast for accessibility.
+
+---
+
+#### **2. API Documentation** 📝
+- **Objective**: Create comprehensive documentation for the module's public C++ API to facilitate integration and future development.
+- **Tasks**:
+  - **Document `RegimeManager` API**:
+    - Detail each `Q_INVOKABLE` method, including its purpose, parameters, and return value.
+    - Provide clear examples of how to use the API to control regime execution.
+  - **Clarify Module Capabilities**:
+    - Write a high-level overview of what the module can and cannot do.
+    - Describe its primary responsibilities (managing regime data, controlling execution state, providing models for UI).
+    - List any known limitations or constraints.
+  - **Update In-Code Comments**: Review and improve comments in `regimemanager.h` and `prototablemodel.h` for clarity.
+
+---
+
+#### **3. Unit Test Refresh and Coverage Analysis** ✅
+- **Objective**: Ensure the unit test suite is up-to-date and provides comprehensive coverage of the module's logic.
+- **Tasks**:
+  - **Review Existing Tests**:
+    - Analyze the current test suite in `tests/test_regimemanager.cpp` and other test files.
+    - Identify any tests that are outdated or no longer relevant after the recent architectural changes.
+  - **Enhance Test Coverage**:
+    - Write new unit tests to cover the recently added functionalities (e.g., state-based control disabling, adjacent delegate updates).
+    - Add tests for edge cases in the cycle and repeat logic.
+    - Verify that all API methods in `RegimeManager` are thoroughly tested.
+  - **Run Full Test Suite**: Execute all tests to confirm that the entire module is functioning as expected and that there are no regressions.
+
+# Daily Report for Wednesday, August 13, 2025
+
+Today's session focused on resolving several critical architectural issues, improving data integrity, and enhancing the user interface's robustness. The `ProtoTable` module is now functionally complete, with only minor visual enhancements remaining.
+
+## 🎯 **Major Accomplishments**
+
+### **1. Architectural Flaw in a QML State Delegate Resolved**
+*   **Problem**: The `StateDelegate` was not updating its state when changes where triggered by the `testUpdatingRegimes` function. The architectural flaw was traced to an overly specific `dataChanged` signal in `ProtoTableModel` that only notified a single cell of changes, leaving other delegates in the same row unaware of updates.
+*   **Solution**: The `setData` function in `prototablemodel.cpp` was modified to emit the `dataChanged` signal for the entire row whenever a state-related role was changed. This ensures all delegates in a row are properly notified and refresh accordingly.
+
+### **2. Corrected Cycle Visualization Logic in `TimeProgressBar`**
+*   **Problem**: The `TimeProgressBar` was not displaying cycles in the correct, interleaved order (e.g., A, B, A, B). Instead, it was grouping all repeats of a single regime together (A, A, B, B).
+*   **Solution**: The `expandRegimesToRepeats` function in `visibleregimemodel.cpp` was rewritten to correctly handle cycle expansion. The logic now iterates through cycle repetitions first, and then through each regime within that cycle, ensuring the correct interleaved order is displayed.
+
+### **3. Fixed `TimeProgressBar` Order to Match `ProtoTableModel`**
+*   **Problem**: The rendering order of regimes and cycles in the `TimeProgressBar` did not match their sequential order in the `ProtoTableModel`.
+*   **Solution**: The `expandRegimesToRepeats` function was further refined to process all regimes and cycles sequentially as they appear in the main model. It now correctly identifies and expands cycles in place, preserving the overall order.
+
+### **4. Corrected JSON Serialization for `max_time`**
+*   **Problem**: The `max_time` value was being saved to JSON in seconds, whereas the file format requires it to be in minutes.
+*   **Solution**: The `toJson` function in `regime.cpp` was modified to divide `max_time` by 60, ensuring it is correctly converted to minutes before serialization.
+
+### **5. Enforced Consistent JSON Output Order**
+*   **Problem**: The key order in the saved JSON file was not guaranteed, leading to inconsistent and less readable output.
+*   **Solution**: The `toJson` function in `regime.cpp` was updated to insert keys in a specific, desired order (`name`, `condition`, `max_time`, `note`, `repeat`, `cycle`), which improves the consistency and readability of the output file.
+
+### **6. Implemented State-Based Control Disabling**
+*   **Problem**: Users were able to modify or delete regimes and cycles even after they were no longer in the "Waiting" state, which could lead to unpredictable behavior.
+*   **Solution**:
+    *   In `ControlDelegate.qml`, the `up`, `down`, and `delete` buttons are now disabled when a regime's state is not `Waiting`.
+    *   In `qml/Main.qml`, the main menu options for adding, deleting, and grouping are now disabled if any regime is active.
+
+### **7. Fixed Delegate Update Issue for Adjacent Rows**
+*   **Problem**: A state change in one row was not correctly triggering a UI update in the adjacent row, which depended on its state (e.g., the `upButton` of the second regime would not disable when the first started).
+*   **Solution**: The `setData` function in `prototablemodel.cpp` was enhanced to emit a `dataChanged` signal for both the affected row and the one immediately following it, ensuring that all dependent UI components are correctly updated.
+
+## 🚀 **Impact**
+Today's fixes have significantly improved the architectural integrity, data consistency, and user experience of the `ProtoTable` module. The application is now more robust, predictable, and safer to use, as critical operations are disabled during active processes. With these changes, the module is functionally complete and ready for the final visual polishing and integration into the larger GRAMs project.
+
+---
+
+## 📋 **TODO for Wednesday FINAL MODULE COMPLETION**
 
 ### **🎯 GOAL: Complete and finalize the ProtoTable module for GRAMs project integration**
 
@@ -276,7 +360,7 @@ RegimeManager.completeCurrentRepeat(regimeId, currentRepeat)
 - Each rectangle shows its own condition and execution progress
 
 **Scenario 2: Cycle with 2 Regimes, 2 Cycle Repeats**
-- Shows 4 rectangles: "Regime1\nR1/C1", "Regime1\nR1/C2", "Regime2\nR1/C1", "Regime2\nR1/C2"
+- Shows 4 rectangles: "Regime1\nR1/C1", "Regime1\R1/C2", "Regime2\R1/C1", "Regime2\R1/C2"
 - Orange borders identify cycle entries
 - Each rectangle represents one regime execution within the cycle
 
@@ -1027,142 +1111,4 @@ Today's work focused on improving the core functionality of the prototype table 
 
 Overall, today's changes have made the application more robust and feature-rich, though some further refinement of the cycle management logic is still required.
 
-## Ежедневный отчет за 2025-08-02
-
-Сегодняшняя работа была сосредоточена на улучшении основной функциональности приложения-прототипа таблицы, в частности, на манипулировании строками, управлении циклами и добавлении новых строк.
-
-### Добавленные функции:
-
-*   **Добавление новых строк:** Было добавлено меню "Файл" с подменю "Добавить", позволяющее пользователям добавлять новые режимы ("Вакуум", "Режим в", "Режим г") в таблицу.
-
-### Рефакторинг и исправление ошибок:
-
-*   **Перемещение строк:** Функция `moveRows` была полностью переработана для корректной обработки перемещения отдельных строк и целых циклов вверх и вниз по таблице. Новая логика гарантирует, что циклы рассматриваются как атомарные единицы, и их перемещение не нарушает их внутреннюю целостность.
-*   **Управление циклами:**
-    *   Функции `groupRows` и `ungroupRows` были значительно улучшены для более интеллектуальной обработки идентификаторов циклов. При группировке новая логика объединяет циклы или создает новые с соответствующими идентификаторами. При разгруппировке она корректно расформировывает циклы и сбрасывает `cycleId` для всех затронутых строк.
-    *   Была введена новая функция `updateCycleIds` для последовательной переиндексации всех идентификаторов циклов после любой операции, которая может изменить их порядок (группировка, разгруппировка, перемещение). Это гарантирует, что идентификаторы циклов всегда отражают их визуальное положение в таблице.
-*   **Расчет Span и статуса цикла:** Логика расчета `SpanRole` и `CycleStatusRole` в функции `data()` была исправлена, чтобы быть более эффективной и точной, что решило проблемы с некорректными размерами делегатов.
-
-### Известные проблемы:
-
-*   Все еще остаются некоторые нерешенные проблемы с размером делегата цикла и логикой группировки/разгруппировки. Их нужно будет решить в следующей сессии.
-
-В целом, сегодняшние изменения сделали приложение более надежным и многофункциональным, хотя все еще требуется некоторая доработка логики управления циклами.
-
-## TODO for 2025-08-02
-
-1.  **Sync `selectLayout` with `repeatLayout`:**
-    *   Implement `DelegateChooser` for `selectLayout` to visually represent cycles in the same way as `repeatLayout`.
-    *   Verify that row selection, grouping, and ungrouping logic works correctly with the new delegate structure. So
-    *   if selected row delegate is on cycle then you can only ungroup or delete, if selected delegate without cycle then 
-    *   you can only delete, if two row delegates were selected then you can group or delete them. 
-2.  **Enable Row Reordering:**
-    *   Implement functionality to allow changing the position of selected regimes and cycles within the table.
-3.  **Persist Changes to JSON:**
-    *   Ensure that all modifications, including grouping, ungrouping, and reordering, are correctly saved back to the `regime_a.json` file.
-4.  **Expose Full QML API:**
-    *   Update the QML module API to expose all new functionalities, making them accessible to other QML components.
-
-## План работ на 2025-08-02
-
-1.  **Синхронизация `selectLayout` с `repeatLayout`:**
-    *   Реализовать `DelegateChooser` для `selectLayout`, чтобы визуально представлять циклы так же, как и в `repeatLayout`.
-    *   Проверить, что логика выбора, группировки и разгруппировки строк работает корректно с новой структурой делегатов.
-2.  **Включение изменения порядка строк:**
-    *   Реализовать функциональность, позволяющую изменять положение выбранных режимов и циклов в таблице.
-3.  **Сохранение изменений в JSON:**
-    *   Убедиться, что все изменения, включая группировку, разгруппировку и изменение порядка, корректно сохраняются обратно в файл `regime_a.json`.
-4.  **Предоставление полного API QML:**
-    *   Обновить API модуля QML, чтобы предоставить все новые функциональные возможности, сделав их доступными для других компонентов QML.
-
-## Daily Report - 2025-08-01
-
-- Implemented a selection mechanism in `qml/Main.qml` by adding a new column of rectangles that can be clicked to select rows.
-- Added a context menu that appears on right-clicking the new selection column, providing "Group" and "Ungroup" options.
-- Connected the context menu actions to the `groupRows` and `ungroupRows` functions in `ProtoTableModel`.
-- Ensured that the selection is cleared after a group or ungroup action is performed.
-
-## Ежедневный отчет - 2025-08-01
-
-- Реализован механизм выбора в `qml/Main.qml` путем добавления нового столбца прямоугольников, которые можно нажимать для выбора строк.
-- Добавлено контекстное меню, которое появляется при щелчке правой кнопкой мыши по новому столбцу выбора, предоставляя опции "Group" и "Ungroup".
-- Подключены действия контекстного меню к функциям `groupRows` и `ungroupRows` в `ProtoTableModel`.
-- Обеспечено, что выбор очищается после выполнения действия группировки или разгруппировки.
-
-## TODO for 2025-07-31
-
-1.  **Display `max_time` with time string format:**
-    *   Implement `inputMask: "99:99:99"` and `inputMethodHints: Qt.ImhTime` for the `max_time` TextField delegate.
-    *   Create a utility function (e.g., in C++ or QML) to convert time in minutes (from `regime_a.json`) to a formatted time string (HH:MM:SS).
-
-2.  **Implement Cycles functionality:**
-    *   Read cycle information from JSON (assuming `regime_a.json` will be updated with this data).
-    *   Depending on a cycle ID, combine regime rows in the `repeat` column, making the `repeat` value common to those rows within the same cycle.
-
-3.  **Expose QML Module API:**
-    *   Provide a QML API to return the `Regime` class object by row from `ProtoTableModel`.
-    *   Expose a signal for the Button delegate in `tableView` (column 0) to allow external QML components to react to button clicks, passing relevant `Regime` data.
-
-## План работ на 2025-07-31
-
-1.  **Отображение `max_time` в формате строки времени:**
-    *   Реализовать `inputMask: "99:99:99"` и `inputMethodHints: Qt.ImhTime` для делегата TextField `max_time`.
-    *   Создать вспомогательную функцию (например, на C++ или QML) для преобразования времени в минутах (из `regime_a.json`) в форматированную строку времени (ЧЧ:ММ:СС).
-
-2.  **Реализация функционала циклов:**
-    *   Считывать информацию о циклах из JSON (предполагается, что `regime_a.json` будет обновлен этими данными).
-    *   В зависимости от идентификатора цикла, объединять строки режимов в столбце `repeat`, делая значение `repeat` общим для этих строк в пределах одного цикла.
-
-3.  **Предоставление API модуля QML:**
-    *   Предоставить API QML для возврата объекта класса `Regime` по номеру строки (id) из `ProtoTableModel`.
-    *   Предоставить сигнал для делегата Button в `tableView` (столбец 0), чтобы внешние компоненты QML могли реагировать на нажатия кнопок, передавая соответствующие данные `Regime`.
-
-## Daily Report - 2025-07-30
-
-- Refactored `Regime` and `Condition` classes to use `Q_GADGET` for improved performance and memory management, and to enable passing by value.
-- Updated `ProtoTableModel` to store `Regime` objects by value (`QList<Regime>`) and adjusted data loading, saving, and manipulation accordingly.
-- Implemented `toJson()` and `fromJson()` methods for `Regime` and `Condition` structs, and added `operator==` for proper comparison.
-- Corrected `main.cpp` to properly register `Q_GADGET` types using `qRegisterMetaType`.
-- Restored and enhanced `ConditionCell.qml` to include `ComboBox` for condition type and `TextField`s for `temp` and `time`, ensuring correct data binding and explicit updates to the model via `model.condition = newCondition`.
-- Added `RepeatRole` and `MaxTimeRole` to `ProtoTableModel` to expose `m_repeatCount` and `m_maxTime` from the `Regime` class.
-- Updated `qml/Main.qml` to use `DelegateChooser` for column 0 (Button for regime name), column 2 (SpinBox for repeat count), and column 3 (TextField for max time), utilizing the new specific role names (`model.regime.name`, `model.repeat`, `model.max_time`).
-- Successfully debugged and resolved multiple build and runtime errors, including CMake configuration issues, linker errors, and QML binding problems.
-- Learned and applied the correct pattern for updating model data from QML delegates by explicitly assigning modified data back to the model's roles.
-
-## TODO for 2025-07-30
-
-- Rename `ConditionDelegateA.qml` to `ConditionCell.qml`.
-- Add interactivity to `ConditionCell.qml`.
-    - Changing any of the values in the delegate should update the `ProtoTableModel`.
-- Save all changes from the `ProtoTableModel` back to `regime_a.json`.
-
-## План работ на 2025-07-30
-
-- Переименовать `ConditionDelegateA.qml` в `ConditionCell.qml`.
-- Добавить интерактивность в `ConditionCell.qml`.
-    - Изменение любого из значений в делегате должно обновлять `ProtoTableModel`.
-- Сохранять все изменения из `ProtoTableModel` обратно в `regime_a.json`.
-
-## Daily Report - 2025-07-29
-
-- Created documentation for `regime_a.json` in a new `regime_a.md` file and removed comments from the JSON file.
-- Updated `ProtoTableModel` to use the following Russian column names: "Режим", "Условие", "Повтор", "Макс. время".
-- Populated the `ProtoTableModel` with data from the `regime_a.json` file.
-- Created a new `ConditionDelegateA.qml` file to be used as a delegate for the "Условие" column.
-- Integrated the `ConditionDelegateA.qml` into the `Main.qml` file.
-- Modified the `ProtoTableModel` to expose the `condition` data from `regime_a.json` as a custom role.
-- Updated the `ConditionDelegateA.qml` to consume the `condition` data from the model, populating the `ComboBox` and `TextField`s with the correct values.
-- Added the new `ConditionDelegateA.qml` file to the `CMakeLists.txt` to ensure it is included in the build.
-- Debugged and fixed various build and runtime errors that occurred during development.
-
-## Ежедневный отчет - 2025-07-29
-
-- Создана документация для `regime_a.json` в новом файле `regime_a.md` и удалены комментарии из файла JSON.
-- Обновлена модель `ProtoTableModel` для использования следующих русских названий столбцов: "Режим", "Условие", "Повтор", "Макс. время".
-- Заполнена модель `ProtoTableModel` данными из файла `regime_a.json`.
-- Создан новый файл `ConditionDelegateA.qml` для использования в качестве делегата для столбца "Условие".
-- Интегрирован `ConditionDelegateA.qml` в файл `Main.qml`.
-- Изменена модель `ProtoTableModel` для предоставления данных `condition` из `regime_a.json` в качестве пользовательской роли.
-- Обновлен `ConditionDelegateA.qml` для использования данных `condition` из модели, заполняя `ComboBox` и `TextField` правильными значениями.
-- Добавлен новый файл `ConditionDelegateA.qml` в `CMakeLists.txt` для включения его в сборку.
-- Отлажены и исправлены различные ошибки сборки и выполнения, возникшие в ходе разработки.
+## Ежедневный

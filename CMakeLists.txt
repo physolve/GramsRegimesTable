@@ -4,7 +4,7 @@ project(example_tableview VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
 
 qt_add_resources(QML_RESOURCES resources.qrc)
 
@@ -29,22 +29,25 @@ target_link_libraries(${EXECUTABLE_NAME}
     PRIVATE
         Qt6::Core
         Qt6::Quick
+        Qt6::QuickControls2
         prototablemodel
 )
 
 add_library(prototablemodel STATIC prototablemodel.cpp regime.cpp regimemanager.cpp visibleregimemodel.cpp)
 
-target_link_libraries(prototablemodel PRIVATE Qt6::Core)
+target_link_libraries(prototablemodel PRIVATE Qt6::Core Qt6::Quick Qt6::QuickControls2)
 
 qt6_add_qml_module(${EXECUTABLE_NAME}
     URI com.grams.prototable
     VERSION 1.0
     QML_FILES
+        RunTable.qml
         ConditionCell.qml
         ControlDelegate.qml
         RegimeDelegate.qml
         StateDelegate.qml
         TimeProgressBar.qml
+        ScrollArrow.qml
     SOURCES
         prototablemodel.h
         regime.h

@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include "prototablemodel.h"
 #include "regime.h"
 #include "regimemanager.h"
@@ -12,7 +13,9 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<Condition>();
     qmlRegisterUncreatableMetaObject(RegimeEnums::staticMetaObject, "com.grams.prototable", 1, 0, "RegimeState", "Error: only enums");
-
+    QQuickStyle::setStyle("Material");
+    QString applicationName = "GRAMs"; // curInitProfile also?
+    QLocale::setDefault(QLocale::c()); 
     QQmlApplicationEngine engine;
     RegimeManager regimeManager;
     qmlRegisterSingletonInstance("com.grams.prototable", 1, 0, "RegimeManager", &regimeManager);

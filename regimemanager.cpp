@@ -95,6 +95,8 @@ void RegimeManager::importRegimes(const QUrl &filePath)
 void RegimeManager::exportRegimes(const QUrl &filePath)
 {
     saveRegimesToFile(m_model.getRegimes(), filePath.toLocalFile());
+    setCurrentFilePath(filePath);
+    setDirty(false);
 }
 
 void RegimeManager::saveRegimes()
@@ -102,12 +104,6 @@ void RegimeManager::saveRegimes()
     if (m_currentFilePath.isEmpty() || !m_currentFilePath.isValid()) return;
     saveRegimesToFile(m_model.getRegimes(), m_currentFilePath.toLocalFile());
     setDirty(false);
-}
-
-void RegimeManager::saveRegimesAs(const QUrl &filePath)
-{
-    setCurrentFilePath(filePath);
-    saveRegimes();
 }
 
 void RegimeManager::loadDefaultRegimes()

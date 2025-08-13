@@ -28,15 +28,19 @@ Rectangle {
     required property int index
     required property var model
     property bool isSelected: false
+    property bool controlsEnabled: model.state === RegimeState.State.Waiting
+
     Row {
+        x: 1
         height: parent.height
         width: parent.width
         spacing: 5
         SpinBox {
             y: parent.height/2 - 20
             height: 40
-            width: 100
+            width: 70
             wheelEnabled: false
+            enabled: controlsEnabled
             // Validation constraints for repeat counts
             from: 1
             to: 1000
@@ -52,11 +56,21 @@ Rectangle {
                     model.cycle_repeat = value
                 }
             }
+            up.indicator:  ScrollArrow {
+                arrowColor: "white"
+                transform: Translate {x: 48 ; y: 4}
+            }
+            down.indicator: ScrollArrow {
+                arrowColor: "white"
+                rotation: 180
+                transform: Translate {x: 48; y: 16}
+            }
         }
         CheckBox {
             y: parent.height/2 - 20
             height: 40
             checked: isSelected
+            enabled: controlsEnabled
             onClicked: {
                 root.isSelected = checked
             }
@@ -74,7 +88,7 @@ Rectangle {
                 // border.color: "lightgray"
                 // border.width: 1
             }
-            visible: RegimeManager.model.isMoveUpEnabled([index])
+            visible: RegimeManager.model.isMoveUpEnabled([index]) && model.state === RegimeState.State.Waiting
             onClicked: {
                 RegimeManager.model.moveSelection([index], true)
             }
@@ -93,7 +107,7 @@ Rectangle {
                 // border.color: "lightgray"
                 // border.width: 1
             }
-            visible: RegimeManager.model.isMoveDownEnabled([index])
+            visible: RegimeManager.model.isMoveDownEnabled([index]) && model.state === RegimeState.State.Waiting
             onClicked: {
                 RegimeManager.model.moveSelection([index], false)
             }
@@ -112,7 +126,7 @@ Rectangle {
                 // border.color: "lightgray"
                 // border.width: 1
             }
-            visible: root.isSelected
+            visible: root.isSelected && controlsEnabled
             onClicked: {
                 RegimeManager.model.deleteRows([index])
             }

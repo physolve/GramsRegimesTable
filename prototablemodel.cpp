@@ -219,6 +219,7 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
     if (role == ConditionRole) {
         regime.m_condition = value.value<Condition>();
         emit dataChanged(index, index, {role, Qt::DisplayRole});
+        emit totalTimeChanged();
         return true;
     }
 
@@ -230,7 +231,7 @@ bool ProtoTableModel::setData(const QModelIndex &index, const QVariant &value, i
 
     if (role == StateRole) {
         regime.m_state = value.value<RegimeEnums::State>();
-        emit dataChanged(this->index(index.row(), 0), this->index(index.row(), columnCount() - 1), {role});
+        emit dataChanged(this->index(0, 0), this->index(rowCount() - 1, columnCount() - 1), {role});
         checkAndUpdateRunningState();
         return true;
     }

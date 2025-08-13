@@ -4,8 +4,6 @@ import QtQuick.Layouts
 
 Rectangle {
     id: root
-    width: 820
-    height: 130
     color: "#f0f0f0"
     property var model: null
     property int visibleStartTime: 0
@@ -316,7 +314,7 @@ Rectangle {
         spacing: 10
         
         Label {
-            text: "Start:"
+            text: "Начало:"
             color: "black"
         }
         
@@ -353,7 +351,7 @@ Rectangle {
         }
         
         Label {
-            text: "End:"
+            text: "Конец:"
             color: "black"
         }
         
@@ -391,7 +389,7 @@ Rectangle {
         
         // Scale control for timeline zoom
         Label {
-            text: "Scale:"
+            text: "Масштаб:"
             color: "black"
         }
         
@@ -409,7 +407,7 @@ Rectangle {
         
         // Quick action buttons
         Button {
-            text: "Fit All"
+            text: "Показать все"
             onClicked: {
                 var totalTime = RegimeManager.getTotalEstimatedTime()
                 if (totalTime > 0) {
@@ -424,6 +422,7 @@ Rectangle {
         
         Button {
             text: "Reset Scale"
+            visible: false
             onClicked: {
                 timelineScale = 1.0
                 scaleSpinBox.value = 1
@@ -434,13 +433,13 @@ Rectangle {
     // Helper function to get state name for tooltip
     function getStateName(state) {
         switch (state) {
-            case 0: return "Waiting"
-            case 1: return "Stopped"
-            case 2: return "Running"
-            case 3: return "Paused"
-            case 4: return "Skipped"
-            case 5: return "Done"
-            case 6: return "Error"
+            case 0: return "Ожидаение"
+            case 1: return "Остановлен"
+            case 2: return "Работает"
+            case 3: return "Пауза"
+            case 4: return "Пропущен"
+            case 5: return "Закончен"
+            case 6: return "Ошибка"
             default: return "Unknown"
         }
     }

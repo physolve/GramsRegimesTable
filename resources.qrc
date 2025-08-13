@@ -1,6 +1,8 @@
 <RCC>
+    <qresource prefix="/">
+        <file>qtquickcontrols2.conf</file>
+    </qresource>
     <qresource prefix="/prototype_table">
         <file>qml/Main.qml</file>
-        <file>qml/Utils.js</file>
     </qresource>
 </RCC>
