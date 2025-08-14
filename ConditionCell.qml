@@ -11,8 +11,14 @@ Row {
     required property var model
     ComboBox {
         id: typeComboBox
-        model: ["none", "time", "temp"]
-        width: 70
+        y: 5
+        height: 35
+        property string none: "🤖"
+        property string time: "⏱️"
+        property string temp: "🌡️" 
+        model: [none, time, temp]
+        width: 65
+
         font.pointSize: 9
         
         currentIndex: {
@@ -30,13 +36,13 @@ Row {
         
         function makeChanges() {
             let newCond = container.model.condition
-            newCond.type = typeComboBox.currentText
-            
+            newCond.type = typeComboBox.currentText === none ? "none" :  typeComboBox.currentText === time ? "time" : "temp"
+
             // Auto-set values to 0 when disabled
-            if (typeComboBox.currentText === "none") {
+            if (typeComboBox.currentText === none) {
                 newCond.temp = 0
                 newCond.time = 0
-            } else if (typeComboBox.currentText === "time") {
+            } else if (typeComboBox.currentText === time) {
                 newCond.temp = 0  // Disable temp when only time is selected
             }
             // For "temp" option, both fields remain enabled
@@ -47,14 +53,16 @@ Row {
 
     TextField {
         id: tempTextField
-        width: 40
-        font.pointSize: 9
+        y: 5
+        height: 35
+        width: 50
+        font.pointSize: 8
         validator: DoubleValidator { bottom: 0; top: 1000; decimals: 3 }
         selectByMouse: true
         horizontalAlignment: TextInput.AlignHCenter
         placeholderText: "°C"
         text: container.model.condition.temp
-        enabled: typeComboBox.currentText === "temp"
+        enabled: typeComboBox.currentText === typeComboBox.temp
         opacity: enabled ? 1.0 : 0.5  // Visual feedback for disabled state
         onEditingFinished: {
             if (enabled) {
@@ -67,14 +75,16 @@ Row {
 
     TextField {
         id: timeTextField
-        width: 40
-        font.pointSize: 9
+        y: 5
+        height: 35
+        width: 50
+        font.pointSize: 8
         validator: IntValidator { bottom: 0; top: 1000 }
         selectByMouse: true
         horizontalAlignment: TextInput.AlignHCenter
         placeholderText: "мин"
         text: container.model.condition.time
-        enabled: typeComboBox.currentText === "time" || typeComboBox.currentText === "temp"
+        enabled: typeComboBox.currentText === typeComboBox.time || typeComboBox.currentText === typeComboBox.temp
         opacity: enabled ? 1.0 : 0.5  // Visual feedback for disabled state
         onEditingFinished: {
             if (enabled) {

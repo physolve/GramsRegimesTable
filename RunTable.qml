@@ -8,8 +8,8 @@ import QtQuick.Dialogs
 
 Item {
     id: runTable
-    width: 700
-    height: 650
+    width: 680
+    height: 420
     visible: true
     // title: qsTr("ProtoTable App") + (RegimeManager.dirty ? " *" : "")
 
@@ -67,12 +67,12 @@ Item {
         x: 10
         y: 10
         width: 665
-        height: 400
+        height: 225
         clip: true
         columnSpacing: 1
         rowSpacing: 1
         rowHeightProvider: (row) => 40
-        property var columnWidths: [80, 150, 80, 85]
+        property var columnWidths: [70, 165, 80, 90]
         columnWidthProvider: function (column) { return columnWidths[column] }
         boundsBehavior: TableView.StopAtBounds
         model: RegimeManager.model
@@ -113,12 +113,13 @@ Item {
             DelegateChoice {
                 column: 2
                 delegate: TextField {
-                    id: maxTimeDelegate
+                    id: maxTimeDelegate                    
+                    font.pointSize: 9
                     text: formatTime(model.max_time)
                     inputMask: "99:99:99"
                     inputMethodHints: Qt.ImhTime
                     horizontalAlignment: TextInput.AlignHCenter
-                    
+                    topInset: 5
                     // Custom validator for time range 00:00:01 to 23:59:59
                     validator: RegularExpressionValidator {
                         regularExpression: /^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/
@@ -156,10 +157,10 @@ Item {
 
     ScrollView {
         id: controlsView
-        x: 410
+        x: 420
         y: 10
-        width: 255
-        height: 400
+        width: 245
+        height: 225
         clip: true
         // implicitHeight: 400
         // Synchronize with tableView scrollbar
@@ -167,7 +168,7 @@ Item {
         
         ScrollBar.vertical: ScrollBar {
             id: controlsScrollBar
-            policy: ScrollBar.AsNeeded
+            policy: ScrollBar.AlwaysOff
             
             onPositionChanged: {
                 if (!controlsView.syncingScroll && !tableView.syncingScroll) {
@@ -182,7 +183,7 @@ Item {
         Column {
             // id: controlsColumnLayout
             spacing: 1
-            width: 400
+            // width: 400
             height: repeater.contentHeight
             // Layout.preferredWidth: parent.width
             // Layout.preferredHeight: childrenRect.height
@@ -194,7 +195,7 @@ Item {
                     DelegateChoice {
                         roleValue: 1
                         delegate: ControlDelegate {
-                            width: 250
+                            width: 240
                             height: 40 * model.cycle_row_count
                             // Layout.rowSpan: model.cycle_row_count
                             isSelected: false
@@ -203,7 +204,7 @@ Item {
                     DelegateChoice {
                         roleValue: 0
                         delegate: ControlDelegate {
-                            width: 250
+                            width: 240
                             height: 40
                             isSelected: false
                         }
@@ -224,15 +225,15 @@ Item {
     TimeProgressBar {
         id: timeProgressBar
         x: 10
-        y: 420
+        y: 240
         width: 650
         height: 130
     }
 
     MenuBar {
         id: menuBar
-        x: 200
-        y: 560
+        x: 150
+        y: 375
         Menu {
             title: "Файл"
             MenuItem {

@@ -1,29 +1,32 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-
+import QtQuick.Controls.Material
 import com.grams.prototable
 
-Rectangle {
+Pane {
     id: root
-    width: 250
-    border.color: {
-        // Cycle highlighting: orange border for cycles, black for individual regimes
-        if (model.cycle_status === 1) {
-            return "#ff8c00"  // Orange border for cycles
+    width: 240
+    padding: 0
+    Material.elevation: 6
+    background: Rectangle {
+        y: 5
+        height: parent.height - 5
+        width: parent.width
+        border.color: {
+            if (isSelected) {
+                return "#ff8c00" 
+            }
+            return "#6A6A6A"     // Black border for individual regimes
         }
-        return "black"     // Black border for individual regimes
-    }
-    border.width: model.cycle_status === 1 ? 2 : 1  // Thicker border for cycles
-    color: {
-        if (isSelected) {
-            return "lightblue"
+        border.width: model.cycle_status === 1 ? 2 : 1  // Thicker border for cycles
+        color: {
+            // Background highlighting for cycles
+            if (model.cycle_status === 1) {
+                return "#464646"
+            }
+            return "#2B2B2B"
         }
-        // Background highlighting for cycles
-        if (model.cycle_status === 1) {
-            return "#fff8dc"  // Light cream background for cycles
-        }
-        return "white"     // White background for individual regimes
     }
     required property int index
     required property var model
@@ -31,13 +34,12 @@ Rectangle {
     property bool controlsEnabled: model.state === RegimeState.State.Waiting
 
     Row {
-        x: 1
         height: parent.height
         width: parent.width
-        spacing: 5
+        spacing: 3
         SpinBox {
-            y: parent.height/2 - 20
-            height: 40
+            y: parent.height/2 - 15
+            height: 35
             width: 70
             wheelEnabled: false
             enabled: controlsEnabled
@@ -58,17 +60,17 @@ Rectangle {
             }
             up.indicator:  ScrollArrow {
                 arrowColor: "white"
-                transform: Translate {x: 48 ; y: 4}
+                transform: Translate {x: 48 ; y: 2}
             }
             down.indicator: ScrollArrow {
                 arrowColor: "white"
                 rotation: 180
-                transform: Translate {x: 48; y: 16}
+                transform: Translate {x: 48; y: 12}
             }
         }
         CheckBox {
-            y: parent.height/2 - 20
-            height: 40
+            y: parent.height/2 - 15
+            height: 35
             checked: isSelected
             enabled: controlsEnabled
             onClicked: {
@@ -77,11 +79,11 @@ Rectangle {
         }
         Button {
             id: upButton
-            y: parent.height/2 - 20
-            height: 40
+            y: parent.height/2 - 15
+            height: 35
             width: 40
             text: "⬆️"
-            font.pointSize: 15
+            font.pointSize: 11
             background: Rectangle {
                 color: "transparent" // Or "#00000000" for full transparency
                 // You can add borders or other visual elements if desired
@@ -96,11 +98,11 @@ Rectangle {
 
         Button {
             id: downButton
-            y: parent.height/2 - 20
-            height: 40
+            y: parent.height/2 - 15
+            height: 35
             width: 40
             text: "⬇️"
-            font.pointSize: 15
+            font.pointSize: 11
             background: Rectangle {
                 color: "transparent" // Or "#00000000" for full transparency
                 // You can add borders or other visual elements if desired
@@ -115,11 +117,11 @@ Rectangle {
 
         Button {
             id: deleteButton
-            y: parent.height/2 - 20
-            height: 40
+            y: parent.height/2 - 15
+            height: 35
             width: 40
             text: "🗑️"
-            font.pointSize: 15
+            font.pointSize: 11
             background: Rectangle {
                 color: "transparent" // Or "#00000000" for full transparency
                 // You can add borders or other visual elements if desired

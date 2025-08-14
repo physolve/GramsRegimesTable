@@ -4,6 +4,8 @@ import com.grams.prototable
 
 TextField {
     id: stateDelegate
+    topInset: 5
+    font.pointSize: 9
     required property int row
     required property int column
     required property bool current

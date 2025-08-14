@@ -4,7 +4,10 @@ import QtQuick.Layouts
 
 Rectangle {
     id: root
-    color: "#f0f0f0"
+    // border.color: "#ff8c00"
+    border.width: 2
+    border.color: "#464646"
+    color: "#2B2B2B"
     property var model: null
     property int visibleStartTime: 0
     property int visibleEndTime: RegimeManager.getTotalEstimatedTime()
@@ -137,8 +140,8 @@ Rectangle {
                         }
                     }
                     
-                    border.color: model.isCycle ? "#ff8c00" : "#c0c0c0"  // Orange border for cycles
-                    border.width: model.isCycle ? 2 : 1                   // Thicker border for cycles
+                    border.color: model.isCycle ? "#9FC9CA" : "#464646"  // Gray border for cycles
+                    border.width: model.isCycle ? 1 : 2                   // Thicker border for cycles
 
                     // Each rectangle now represents a single repeat
                     // Condition progress indicator (if condition time exists)
@@ -297,9 +300,9 @@ Rectangle {
     // Time label below the timeline
     Label {
         id: timeLabel
-        y: 50
+        y: 55
         width: parent.width
-        color: "black"
+        // color: "white"
         text: formatTime(RegimeManager.getTotalElapsedTime()) + " / " + formatTime(RegimeManager.getTotalEstimatedTime())
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
@@ -315,11 +318,12 @@ Rectangle {
         
         Label {
             text: "Начало:"
-            color: "black"
+            // color: "black"
         }
         
         TextField {
             id: startTimeField
+            Layout.preferredHeight: 35
             Layout.preferredWidth: 80
             text: formatTime(root.visibleStartTime)
             inputMask: "99:99:99"
@@ -352,11 +356,12 @@ Rectangle {
         
         Label {
             text: "Конец:"
-            color: "black"
+            // color: "black"
         }
         
         TextField {
             id: endTimeField
+            Layout.preferredHeight: 35
             Layout.preferredWidth: 80
             text: formatTime(root.visibleEndTime)
             inputMask: "99:99:99"
@@ -390,18 +395,28 @@ Rectangle {
         // Scale control for timeline zoom
         Label {
             text: "Масштаб:"
-            color: "black"
+            // color: "black"
         }
         
         SpinBox {
             id: scaleSpinBox
+            Layout.preferredHeight: 35
             Layout.preferredWidth: 80
             from: 1
             to: 100
             value: Math.round(timelineScale)
-            
+            wheelEnabled: true
             onValueModified: {
                 timelineScale = value
+            }
+            up.indicator:  ScrollArrow {
+                arrowColor: "white"
+                transform: Translate {x: 54 ; y: 2}
+            }
+            down.indicator: ScrollArrow {
+                arrowColor: "white"
+                rotation: 180
+                transform: Translate {x: 54; y: 12}
             }
         }
         
