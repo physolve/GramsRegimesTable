@@ -1,5 +1,7 @@
 build/
-
-docs/*
-!docs/pictures
-docs/doxygen
+docs/_build/
+docs/bin/
+docs/include/
+docs/lib/
+docs/lib64/
+docs/doxygen/

@@ -1,0 +1,10 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = ProtoTable
+PROJECT_BRIEF          = "A QML table with JSON import/export for task automation."
+OUTPUT_DIRECTORY       = doxygen
+INPUT                  = ../
+RECURSIVE              = YES
+EXTRACT_ALL            = YES
+GENERATE_XML           = YES
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
